@@ -173,28 +173,25 @@ vec3 applyEffect(vec3 pos, vec3 originalPos, float time) {
     float cosA = cos(angle);
     float sinA = sin(angle);
     
-    // X축 회전
+    // X축 회전 (YZ 평면에서 회전)
     if (uRotateAxisX) {
-      float newY = rotated.y * cosA - rotated.z * sinA;
-      float newZ = rotated.y * sinA + rotated.z * cosA;
-      rotated.y = newY;
-      rotated.z = newZ;
+      vec3 temp = rotated;
+      rotated.y = temp.y * cosA - temp.z * sinA;
+      rotated.z = temp.y * sinA + temp.z * cosA;
     }
     
-    // Y축 회전
+    // Y축 회전 (XZ 평면에서 회전)
     if (uRotateAxisY) {
-      float newX = rotated.x * cosA - rotated.z * sinA;
-      float newZ = rotated.x * sinA + rotated.z * cosA;
-      rotated.x = newX;
-      rotated.z = newZ;
+      vec3 temp = rotated;
+      rotated.x = temp.x * cosA + temp.z * sinA;
+      rotated.z = -temp.x * sinA + temp.z * cosA;
     }
     
-    // Z축 회전
+    // Z축 회전 (XY 평면에서 회전)
     if (uRotateAxisZ) {
-      float newX = rotated.x * cosA - rotated.y * sinA;
-      float newY = rotated.x * sinA + rotated.y * cosA;
-      rotated.x = newX;
-      rotated.y = newY;
+      vec3 temp = rotated;
+      rotated.x = temp.x * cosA - temp.y * sinA;
+      rotated.y = temp.x * sinA + temp.y * cosA;
     }
     
     // intensity에 따라 원본과 회전된 위치 사이를 보간
