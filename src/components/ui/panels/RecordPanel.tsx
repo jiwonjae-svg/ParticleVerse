@@ -325,8 +325,8 @@ export default function RecordPanel() {
       )}
 
       {/* 법적 안내 */}
-      <div className="p-3 bg-yellow-500/10 light:bg-amber-100/80 border border-yellow-500/30 light:border-amber-300/50 rounded-lg">
-        <p className="text-xs text-yellow-400/80 light:text-amber-800 leading-relaxed">
+      <div className="p-3 bg-yellow-500/10 light:bg-blue-100/80 border border-yellow-500/30 light:border-blue-300/50 rounded-lg">
+        <p className="text-xs text-yellow-400/80 light:text-blue-800 leading-relaxed">
           {t('legalNotice')}
         </p>
       </div>

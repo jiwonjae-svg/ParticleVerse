@@ -68,7 +68,7 @@ export default function UIOverlay() {
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white">{t('appName')}</h1>
+            <h1 className="text-lg font-bold text-white !text-white">{t('appName')}</h1>
             <p className="text-xs text-dark-400 dark:text-dark-400 light:text-slate-500">{t('appDescription')}</p>
           </div>
         </div>
