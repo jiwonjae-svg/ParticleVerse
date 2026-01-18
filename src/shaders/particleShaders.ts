@@ -194,8 +194,8 @@ vec3 applyEffect(vec3 pos, vec3 originalPos, float time) {
       rotated.y = temp.x * sinA + temp.y * cosA;
     }
     
-    // intensity에 따라 원본과 회전된 위치 사이를 보간
-    result = mix(originalPos, rotated, intensity);
+    // intensity는 이미 angle 계산에 적용되어 있으므로 mix 사용 안 함
+    result = rotated;
   }
   // 10: float - 전체 객체가 풍선처럼 움직임
   else if (uEffect == 10) {

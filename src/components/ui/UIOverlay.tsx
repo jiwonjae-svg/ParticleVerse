@@ -64,11 +64,11 @@ export default function UIOverlay() {
       >
         {/* 로고 */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-lg shadow-primary-500/30">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 light:from-primary-400 light:to-accent-400 light:shadow-xl flex items-center justify-center shadow-lg shadow-primary-500/30">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white dark:text-white light:text-slate-800">{t('appName')}</h1>
+            <h1 className="text-lg font-bold text-white">{t('appName')}</h1>
             <p className="text-xs text-dark-400 dark:text-dark-400 light:text-slate-500">{t('appDescription')}</p>
           </div>
         </div>
@@ -99,21 +99,21 @@ export default function UIOverlay() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowInfo(!showInfo)}
-              className="btn-icon glass"
+              className="btn-icon glass light:bg-white/60 light:hover:bg-white/80 light:text-slate-700"
               title={t('info')}
             >
               <Info className="w-4 h-4" />
             </button>
             <button
               onClick={reset}
-              className="btn-icon glass"
+              className="btn-icon glass light:bg-white/60 light:hover:bg-white/80 light:text-slate-700"
               title={t('reset')}
             >
               <RotateCcw className="w-4 h-4" />
             </button>
             <button
               onClick={togglePanel}
-              className="btn-icon glass"
+              className="btn-icon glass light:bg-white/60 light:hover:bg-white/80 light:text-slate-700"
               title={isPanelVisible ? t('hidePanel') : t('showPanel')}
             >
               <Settings className="w-4 h-4" />
@@ -134,14 +134,14 @@ export default function UIOverlay() {
           >
             <div className="panel h-full flex flex-col">
               {/* 탭 헤더 */}
-              <div className="flex gap-0.5 mb-4 p-1 bg-dark-800/50 rounded-xl overflow-x-auto">
+              <div className="flex gap-2 mb-4 p-1 bg-dark-800/50 rounded-xl overflow-x-auto">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`tab flex flex-col items-center gap-1 py-2 px-1.5 min-w-[40px] ${
+                      className={`tab flex flex-col items-center gap-1 py-2 px-3 min-w-[40px] ${
                         activeTab === tab.id ? 'active' : ''
                       }`}
                       title={t(tab.labelKey)}

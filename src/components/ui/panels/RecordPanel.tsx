@@ -289,8 +289,8 @@ export default function RecordPanel() {
           {/* FPS */}
           <div className="space-y-2">
             <div className="flex justify-between">
-              <label className="text-sm text-gray-400">{t('recordFps')}</label>
-              <span className="text-sm text-white">{recordingSettings.fps} FPS</span>
+              <label className="text-sm text-gray-400 light:text-slate-600">{t('recordFps')}</label>
+              <span className="text-sm text-white light:text-slate-800">{recordingSettings.fps} FPS</span>
             </div>
             <input
               type="range"
@@ -306,12 +306,12 @@ export default function RecordPanel() {
 
           {/* 오디오 포함 */}
           <div className="flex items-center justify-between">
-            <label className="text-sm text-gray-400">{t('includeAudio')}</label>
+            <label className="text-sm text-gray-400 light:text-slate-600">{t('includeAudio')}</label>
             <button
               onClick={() => updateRecordingSettings({ includeAudio: !recordingSettings.includeAudio })}
               disabled={isRecording}
               className={`w-12 h-6 rounded-full p-1 transition-colors ${
-                recordingSettings.includeAudio ? 'bg-primary-500' : 'bg-dark-600'
+                recordingSettings.includeAudio ? 'bg-primary-500' : 'bg-dark-600 light:bg-slate-300'
               } ${isRecording ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <motion.div
@@ -325,8 +325,8 @@ export default function RecordPanel() {
       )}
 
       {/* 법적 안내 */}
-      <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-        <p className="text-xs text-yellow-400/80 leading-relaxed">
+      <div className="p-3 bg-yellow-500/10 light:bg-amber-100/80 border border-yellow-500/30 light:border-amber-300/50 rounded-lg">
+        <p className="text-xs text-yellow-400/80 light:text-amber-800 leading-relaxed">
           {t('legalNotice')}
         </p>
       </div>
