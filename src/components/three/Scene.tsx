@@ -9,6 +9,12 @@ import ParticleSystem from './ParticleSystem';
 import { useAppStore } from '@/store/useAppStore';
 import { generateParticlesFromImage, generateDefaultParticles, generateTextParticles } from '@/utils/particleGenerator';
 
+// Check if device is mobile
+const isMobileDevice = () => {
+  if (typeof window === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+};
+
 export default function Scene() {
   const { 
     sourceType, 
@@ -16,8 +22,31 @@ export default function Scene() {
     visualSettings,
     particleSettings,
     setLoading,
-    setError
+    setError,
+    isPanelVisible,
+    togglePanel
   } = useAppStore();
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile device on mount
+  useEffect(() => {
+    setIsMobile(isMobileDevice());
+    
+    const handleResize = () => {
+      setIsMobile(isMobileDevice());
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Handle canvas click to close panel on mobile
+  const handleCanvasClick = () => {
+    if (isMobile && isPanelVisible) {
+      togglePanel();
+    }
+  };
 
   const [currentData, setCurrentData] = useState<{
     positions: Float32Array;
@@ -191,6 +220,7 @@ export default function Scene() {
 
   return (
     <Canvas
+      onClick={handleCanvasClick}
       gl={{
         antialias: false,
         powerPreference: 'high-performance',

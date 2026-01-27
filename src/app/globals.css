@@ -54,39 +54,10 @@ body {
   background-clip: padding-box;
 }
 
-/* 라이트 모드 스크롤바 */
-.light::-webkit-scrollbar-track {
-  background: rgba(248, 250, 255, 0.5);
-}
-
-.light::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, 
-    rgba(14, 165, 233, 0.3) 0%,
-    rgba(139, 92, 246, 0.3) 100%);
-  box-shadow: inset 0 0 0 1px rgba(14, 165, 233, 0.2);
-}
-
-.light::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, 
-    rgba(14, 165, 233, 0.5) 0%,
-    rgba(139, 92, 246, 0.5) 100%);
-  box-shadow: inset 0 0 0 1px rgba(14, 165, 233, 0.3);
-}
-
-.light::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(135deg, 
-    rgba(14, 165, 233, 0.7) 0%,
-    rgba(139, 92, 246, 0.7) 100%);
-}
-
 /* Firefox 스크롤바 */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb, rgba(14, 165, 233, 0.5)) var(--scrollbar-track, rgba(15, 23, 42, 0.3));
-}
-
-.light * {
-  scrollbar-color: rgba(14, 165, 233, 0.3) rgba(248, 250, 255, 0.5);
 }
 
 /* 글래스모피즘 유틸리티 */
@@ -103,29 +74,6 @@ body {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  /* 라이트 모드 글래스 - 세련된 청보라빛 톤 */
-  .light .glass {
-    background: linear-gradient(135deg, 
-      rgba(255, 255, 255, 0.85) 0%,
-      rgba(248, 250, 255, 0.85) 100%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(14, 165, 233, 0.15);
-    box-shadow: 0 8px 32px rgba(14, 165, 233, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
-    color: rgb(51, 65, 85);
-  }
-
-  .light .glass-light {
-    background: linear-gradient(135deg, 
-      rgba(248, 250, 255, 0.6) 0%,
-      rgba(250, 248, 255, 0.6) 100%);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(139, 92, 246, 0.1);
-    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.05);
   }
 
   .glow-primary {
@@ -148,69 +96,6 @@ body {
     -ms-user-select: none;
     user-select: none;
   }
-}
-
-/* 라이트 모드 글로벌 텍스트 색상 - 세련된 청회색 톤 */
-.light {
-  --foreground-rgb: 30, 41, 59;
-  --background-start-rgb: 248, 250, 255;
-  --background-end-rgb: 250, 248, 255;
-}
-
-.light body {
-  background: linear-gradient(135deg, 
-    rgb(248, 250, 255) 0%,
-    rgb(250, 248, 255) 50%,
-    rgb(245, 250, 255) 100%);
-}
-
-.light .text-white {
-  @apply text-slate-800;
-}
-
-.light .text-dark-300 {
-  @apply text-slate-600;
-}
-
-.light .text-dark-400 {
-  @apply text-slate-500;
-}
-
-.light .text-gray-300 {
-  @apply text-slate-700;
-}
-
-.light .text-gray-400 {
-  @apply text-slate-600;
-}
-
-.light .bg-dark-800 {
-  @apply bg-white/60;
-  border: 1px solid rgba(139, 92, 246, 0.08);
-}
-
-.light .bg-dark-700 {
-  @apply bg-white/40;
-}
-
-.light .bg-dark-600 {
-  @apply bg-slate-200/60;
-}
-
-.light .bg-dark-800\/50 {
-  @apply bg-white/30;
-}
-
-.light .border-dark-600 {
-  @apply border-slate-300/60;
-}
-
-.light .border-dark-500 {
-  @apply border-slate-400/60;
-}
-
-.light .divide-dark-700 {
-  @apply divide-slate-200/60;
 }
 
 /* 캔버스 컨테이너 */
@@ -259,82 +144,12 @@ body {
   @apply hover:bg-dark-800/50 active:scale-95;
 }
 
-/* 라이트 모드 버튼 - 세련된 청보라빛 */
-.light .btn {
-  @apply focus:ring-offset-0;
-}
-
-.light .btn-primary {
-  @apply shadow-lg shadow-primary-500/20;
-}
-
-.light .btn-secondary {
-  @apply bg-white/60 hover:bg-white/80 text-slate-700;
-  @apply border border-slate-300/60;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.6) 0%,
-    rgba(248, 250, 255, 0.6) 100%);
-  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.08);
-}
-
-.light .btn-secondary:hover {
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
-}
-
-.light .btn-ghost {
-  @apply text-slate-700;
-  background: transparent;
-}
-
-.light .btn-ghost:hover {
-  background: linear-gradient(135deg, 
-    rgba(14, 165, 233, 0.08) 0%,
-    rgba(139, 92, 246, 0.08) 100%);
-  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.08);
-}
-
-.light .btn-icon {
-  @apply text-slate-700;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.7) 0%,
-    rgba(248, 250, 255, 0.7) 100%);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 6px rgba(14, 165, 233, 0.08);
-}
-
-.light .btn-icon:hover {
-  @apply text-slate-900;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.9) 0%,
-    rgba(248, 250, 255, 0.9) 100%);
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
-}
-
 /* 인풋 스타일 */
 .input {
   @apply w-full px-4 py-2 rounded-lg bg-dark-800/50 border border-dark-600;
   @apply text-white placeholder-dark-400;
   @apply focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500;
   @apply transition-all duration-200;
-}
-
-/* 라이트 모드 인풋 */
-.light .input {
-  @apply text-slate-800 placeholder-slate-400;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.5) 0%,
-    rgba(248, 250, 255, 0.5) 100%);
-  border: 1px solid rgba(14, 165, 233, 0.15);
-  box-shadow: inset 0 2px 4px rgba(14, 165, 233, 0.04);
-}
-
-.light .input:focus {
-  @apply border-primary-500 ring-2 ring-primary-500/20;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.8) 0%,
-    rgba(248, 250, 255, 0.8) 100%);
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.12),
-              inset 0 2px 4px rgba(14, 165, 233, 0.04);
 }
 
 /* 슬라이더 스타일 */
@@ -351,31 +166,6 @@ body {
 .slider::-moz-range-thumb {
   @apply w-4 h-4 rounded-full bg-primary-500 cursor-pointer border-none;
   @apply shadow-lg shadow-primary-500/30;
-}
-
-/* 라이트 모드 슬라이더 */
-.light .slider {
-  background: linear-gradient(to right,
-    rgba(14, 165, 233, 0.12),
-    rgba(139, 92, 246, 0.12));
-  box-shadow: inset 0 1px 3px rgba(14, 165, 233, 0.1);
-}
-
-.light .slider::-webkit-slider-thumb {
-  background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%);
-  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25),
-              0 0 0 4px rgba(14, 165, 233, 0.08);
-}
-
-.light .slider::-webkit-slider-thumb:hover {
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35),
-              0 0 0 6px rgba(14, 165, 233, 0.12);
-  transform: scale(1.1);
-}
-
-.light .slider::-moz-range-thumb {
-  background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%);
-  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25);
 }
 
 /* 토글 스위치 */
@@ -400,13 +190,6 @@ body {
 /* 패널 스타일 */
 .panel {
   @apply glass rounded-2xl p-4 shadow-2xl;
-}
-
-/* 라이트 모드 패널 - 세련된 글로우 효과 */
-.light .panel {
-  box-shadow: 0 8px 32px rgba(14, 165, 233, 0.08),
-              0 16px 64px rgba(139, 92, 246, 0.06),
-              inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 /* 애니메이션 */
@@ -450,54 +233,10 @@ body {
   @apply text-white bg-dark-800;
 }
 
-/* 라이트 모드 탭 - 세련된 청보라빛 */
-.light .tab {
-  @apply text-slate-600 hover:text-slate-900;
-  background: transparent;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.light .tab:hover {
-  background: linear-gradient(135deg, 
-    rgba(14, 165, 233, 0.08) 0%,
-    rgba(139, 92, 246, 0.08) 100%);
-  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.08);
-}
-
-.light .tab.active {
-  @apply text-primary-600 font-semibold;
-  background: linear-gradient(135deg, 
-    rgba(14, 165, 233, 0.12) 0%,
-    rgba(139, 92, 246, 0.12) 100%);
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.12),
-              inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(14, 165, 233, 0.15);
-}
-
 /* 카드 스타일 */
 .card {
   @apply glass-light rounded-xl p-4 transition-all duration-200;
   @apply hover:bg-dark-700/50;
-}
-
-/* 라이트 모드 카드 */
-.light .card {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.5) 0%,
-    rgba(248, 250, 255, 0.5) 100%);
-  border: 1px solid rgba(14, 165, 233, 0.1);
-  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.06);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.light .card:hover {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.7) 0%,
-    rgba(248, 250, 255, 0.7) 100%);
-  border-color: rgba(14, 165, 233, 0.2);
-  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.12),
-              inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  transform: translateY(-2px);
 }
 
 /* 툴팁 */

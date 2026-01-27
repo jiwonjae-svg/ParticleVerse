@@ -94,7 +94,6 @@ interface RecordingSettings {
 }
 
 interface UISettings {
-  darkMode: boolean;
   language: Language;
 }
 
@@ -220,7 +219,6 @@ const defaultHandSettings: HandSettings = {
 
 const defaultUISettings: UISettings = {
   language: 'en',
-  darkMode: true,
 };
 
 const defaultRecordingSettings: RecordingSettings = {

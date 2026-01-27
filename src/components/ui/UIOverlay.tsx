@@ -64,12 +64,12 @@ export default function UIOverlay() {
       >
         {/* 로고 */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 light:from-primary-400 light:to-accent-400 light:shadow-xl flex items-center justify-center shadow-lg shadow-primary-500/30">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-lg shadow-primary-500/30">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
             <h1 className="text-lg font-bold text-white !text-white">{t('appName')}</h1>
-            <p className="text-xs text-dark-400 dark:text-dark-400 light:text-slate-500">{t('appDescription')}</p>
+            <p className="text-xs text-dark-400">{t('appDescription')}</p>
           </div>
         </div>
 
@@ -78,17 +78,17 @@ export default function UIOverlay() {
           {/* 성능 모니터 */}
           <div className="glass px-3 py-1.5 rounded-lg flex items-center gap-3 text-xs">
             <div className="flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-green-400 dark:text-green-400 light:text-emerald-500" />
-              <span className="text-white dark:text-white light:text-slate-800 font-medium">{fps} {t('fps')}</span>
+              <Activity className="w-3.5 h-3.5 text-green-400" />
+              <span className="text-white font-medium">{fps} {t('fps')}</span>
             </div>
-            <div className="w-px h-4 bg-dark-600 dark:bg-dark-600 light:bg-slate-300/60" />
-            <div className="text-dark-300 dark:text-dark-300 light:text-slate-600">
+            <div className="w-px h-4 bg-dark-600" />
+            <div className="text-dark-300">
               {(particleCount / 1000).toFixed(0)}K {t('particles')}
             </div>
             {currentGesture !== 'none' && (
               <>
-                <div className="w-px h-4 bg-dark-600 dark:bg-dark-600 light:bg-slate-300/60" />
-                <div className="text-primary-400 dark:text-primary-400 light:text-primary-600">
+                <div className="w-px h-4 bg-dark-600" />
+                <div className="text-primary-400">
                   {currentGesture}
                 </div>
               </>
@@ -99,21 +99,21 @@ export default function UIOverlay() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowInfo(!showInfo)}
-              className="btn-icon glass light:bg-white/60 light:hover:bg-white/80 light:text-slate-700"
+              className="btn-icon glass"
               title={t('info')}
             >
               <Info className="w-4 h-4" />
             </button>
             <button
               onClick={reset}
-              className="btn-icon glass light:bg-white/60 light:hover:bg-white/80 light:text-slate-700"
+              className="btn-icon glass"
               title={t('reset')}
             >
               <RotateCcw className="w-4 h-4" />
             </button>
             <button
               onClick={togglePanel}
-              className="btn-icon glass light:bg-white/60 light:hover:bg-white/80 light:text-slate-700"
+              className="btn-icon glass"
               title={isPanelVisible ? t('hidePanel') : t('showPanel')}
             >
               <Settings className="w-4 h-4" />
