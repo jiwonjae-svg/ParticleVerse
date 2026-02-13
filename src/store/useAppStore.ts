@@ -2,10 +2,10 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { Language } from '@/locales';
 
-// 파티클 소스 타입
+// Particle source type
 export type ParticleSourceType = 'image' | 'cubemap' | 'text' | 'model' | 'default';
 
-// 파티클 이펙트 타입
+// Particle effect type
 export type ParticleEffect = 
   | 'none' 
   | 'wave' 
@@ -19,13 +19,13 @@ export type ParticleEffect =
   | 'rotate'
   | 'float';
 
-// 컬러 모드
+// Color mode
 export type ColorMode = 'original' | 'gradient' | 'rainbow' | 'monochrome' | 'temperature';
 
-// 라이팅 모드
+// Lighting mode
 export type LightingMode = 'none' | 'move' | 'expand' | 'contract' | 'pulse' | 'wave';
 
-// 핸드 제스처
+// Hand gesture
 export type HandGesture = 'none' | 'open' | 'closed' | 'pinch' | 'point' | 'peace';
 
 interface HandPosition {
@@ -97,49 +97,70 @@ interface UISettings {
   language: Language;
 }
 
+interface AudioSettings {
+  enabled: boolean;
+  source: 'microphone' | 'file';
+  reactivity: number;
+  bassMultiplier: number;
+  trebleMultiplier: number;
+  smoothing: number;
+  audioUrl: string | null;
+}
+
+export interface AudioData {
+  bass: number;
+  mid: number;
+  treble: number;
+  energy: number;
+}
+
 interface AppState {
-  // 소스 상태
+  // Source state
   sourceType: ParticleSourceType;
   sourceData: string | string[] | null;
   isLoading: boolean;
   error: string | null;
 
-  // 이펙트 상태
+  // Effect state
   currentEffect: ParticleEffect;
   effectIntensity: number;
   rotationSettings: RotationSettings;
   floatSettings: FloatSettings;
   
-  // 전환 상태
+  // Transition state
   isTransitioning: boolean;
   targetEffect: ParticleEffect | null;
 
-  // 파티클 설정
+  // Particle settings
   particleSettings: ParticleSettings;
 
-  // 시각 설정
+  // Visual settings
   visualSettings: VisualSettings;
 
-  // 손 추적 설정
+  // Hand tracking settings
   handSettings: HandSettings;
   leftHand: HandPosition | null;
   rightHand: HandPosition | null;
   currentGesture: HandGesture;
 
-  // UI 설정
+  // UI settings
   uiSettings: UISettings;
   isPanelVisible: boolean;
   activeTab: string;
 
-  // 녹화 설정
+  // Recording settings
   recordingSettings: RecordingSettings;
   isRecording: boolean;
 
-  // 성능 모니터링
+  // Audio
+  audioSettings: AudioSettings;
+  audioData: AudioData | null;
+
+  // Performance monitoring
   fps: number;
   particleCount: number;
 
-  // 액션
+  // Actions
   setSourceType: (type: ParticleSourceType) => void;
   setSourceData: (data: string | string[] | null) => void;
   setLoading: (loading: boolean) => void;
@@ -162,6 +183,8 @@ interface AppState {
   setParticleCount: (count: number) => void;
   setIsRecording: (recording: boolean) => void;
   setIsTransitioning: (transitioning: boolean) => void;
+  updateAudioSettings: (settings: Partial<AudioSettings>) => void;
+  setAudioData: (data: AudioData) => void;
   reset: () => void;
 }
 
@@ -228,11 +251,21 @@ const defaultRecordingSettings: RecordingSettings = {
   includeAudio: false,
 };
 
+const defaultAudioSettings: AudioSettings = {
+  enabled: false,
+  source: 'microphone',
+  reactivity: 1,
+  bassMultiplier: 1.5,
+  trebleMultiplier: 1,
+  smoothing: 0.8,
+  audioUrl: null,
+};
+
 export const useAppStore = create<AppState>()(
   devtools(
     persist(
       (set) => ({
-        // 초기 상태
+        // Initial state
         sourceType: 'default',
         sourceData: null,
         isLoading: false,
@@ -256,8 +289,10 @@ export const useAppStore = create<AppState>()(
         uiSettings: defaultUISettings,
         recordingSettings: defaultRecordingSettings,
         isRecording: false,
+        audioSettings: defaultAudioSettings,
+        audioData: null,
 
-        // 액션
+        // Actions
         setSourceType: (type) => set({ sourceType: type }),
         setSourceData: (data) => set({ sourceData: data }),
         setLoading: (loading) => set({ isLoading: loading }),
@@ -319,6 +354,12 @@ export const useAppStore = create<AppState>()(
         setIsRecording: (recording) => set({ isRecording: recording }),
         setIsTransitioning: (transitioning) => set({ isTransitioning: transitioning }),
 
+        updateAudioSettings: (settings) =>
+          set((state) => ({
+            audioSettings: { ...state.audioSettings, ...settings },
+          })),
+        setAudioData: (data) => set({ audioData: data }),
+
         reset: () =>
           set({
             sourceType: 'default',
@@ -337,6 +378,8 @@ export const useAppStore = create<AppState>()(
             uiSettings: defaultUISettings,
             recordingSettings: defaultRecordingSettings,
             isRecording: false,
+            audioSettings: defaultAudioSettings,
+            audioData: null,
           }),
       }),
       {
@@ -349,6 +392,7 @@ export const useAppStore = create<AppState>()(
           floatSettings: state.floatSettings,
           uiSettings: state.uiSettings,
           recordingSettings: state.recordingSettings,
+          audioSettings: state.audioSettings,
         }),
       }
     )

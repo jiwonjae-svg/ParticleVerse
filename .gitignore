@@ -53,3 +53,6 @@ next-env.d.ts
 
 # Optional: Local development
 *.local
+
+# repomix
+repomix-output.xml

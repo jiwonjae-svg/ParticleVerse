@@ -1,243 +1,345 @@
-# ParticleVerse - 3D 파티클 시각화 웹앱
+<div align="center">
 
-인터랙티브 3D 파티클 시각화 경험 - 손동작으로 파티클을 조작하세요!
+# ✨ ParticleVerse
 
-## 🚀 주요 기능
+**Interactive 3D Particle Visualization Experience**
 
-- **다양한 소스 지원**: 이미지, 텍스트, 3D 모델을 파티클로 변환
-- **손 인식 조작**: 웹캠을 통해 손동작으로 파티클 조작
-- **다양한 이펙트**: 파도, 나선, 폭발, 소용돌이 등 8가지 이펙트
-- **실시간 커스터마이징**: 파티클 크기, 색상, 속도 등 세밀한 조정
-- **GPU 최적화**: WebGL 셰이더 기반 고성능 렌더링
-- **보안 강화**: 20가지 이상의 웹 보안 취약점 대응
+[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![Three.js](https://img.shields.io/badge/Three.js-r160-049EF4?style=flat-square&logo=three.js)](https://threejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
-## 📋 기술 스택
+Transform images, text, and 3D models into stunning particle formations.  
+Control them with your **bare hands** using real-time hand tracking.
 
-- **Framework**: Next.js 14 (App Router)
-- **3D Engine**: Three.js + React Three Fiber
-- **Hand Tracking**: MediaPipe Hands
-- **State Management**: Zustand
-- **Styling**: Tailwind CSS
-- **Animation**: Framer Motion
-- **Deployment**: Vercel
+[Demo](#) · [Features](#-features) · [Getting Started](#-getting-started) · [Architecture](#-architecture) · [Contributing](#-contributing)
 
-## 🛠️ 로컬 개발 환경 설정
+</div>
 
-### 1. 저장소 클론
+---
+
+## 📖 Table of Contents
+
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Getting Started](#-getting-started)
+- [Project Structure](#-project-structure)
+- [Architecture](#-architecture)
+- [Usage](#-usage)
+- [Performance](#-performance)
+- [Security](#-security)
+- [Deployment](#-deployment)
+- [Contributing](#-contributing)
+- [Roadmap](#-roadmap)
+- [License](#-license)
+- [Acknowledgements](#-acknowledgements)
+
+---
+
+## 🚀 Features
+
+| Category | Description |
+|----------|-------------|
+| **Multi-source input** | Convert images, cubemaps, text, and 3D models (GLTF/GLB) into particles |
+| **GPGPU physics** | GPU-computed particle physics via GPUComputationRenderer — persistent velocity, spring-back, and organic hand scatter |
+| **Hand tracking** | Physics-based interaction via MediaPipe — particles scatter like sand |
+| **Audio reactivity** | Web Audio API drives particle size, glow, and physics from microphone or audio files |
+| **11 particle effects** | Wave, spiral, explosion, vortex, galaxy, DNA, ring, fountain, rotate, custom, and none |
+| **6 lighting modes** | None, move, expand, contract, pulse, wave |
+| **5 color modes** | Original, gradient, rainbow, monochrome, temperature |
+| **Smooth transitions** | Color mode and effect transitions blend seamlessly |
+| **Settings sharing** | Copy shareable URL or export/import settings as JSON |
+| **Real-time controls** | Tweak particle count, size, speed, turbulence, bloom, and more |
+| **Recording** | Capture your particle scene as WebM video |
+| **Mobile optimized** | Adaptive DPR, reduced bloom, lower camera resolution on mobile |
+| **Internationalization** | English and Korean UI with extensible locale system |
+| **Security hardened** | XSS, CSRF, clickjacking, file upload validation, and more |
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| Framework | **Next.js 14** (App Router) | SSR, routing, code splitting |
+| 3D Engine | **Three.js** + **React Three Fiber** | WebGL rendering pipeline |
+| Post-processing | **@react-three/postprocessing** | Bloom, vignette effects |
+| Hand Tracking | **MediaPipe Hands** | Real-time hand landmark detection |
+| State | **Zustand** | Lightweight global state management |
+| Styling | **Tailwind CSS** + **Framer Motion** | Utility-first CSS + animations |
+| Shaders | **GLSL** (custom vertex/fragment) | GPU-accelerated particle effects |
+| GPGPU | **GPUComputationRenderer** (three-stdlib) | Ping-pong FBO particle physics |
+| Audio | **Web Audio API** + AnalyserNode | Frequency band extraction for reactivity |
+| Language | **TypeScript 5** | Type safety across the entire codebase |
+| Deployment | **Vercel** | Edge network, zero-config deploys |
+
+---
+
+## 🏁 Getting Started
+
+### Prerequisites
+
+- **Node.js** >= 18
+- **npm** >= 9 (or yarn / pnpm)
+- A modern browser with WebGL 2 support
+- Webcam (optional, for hand tracking)
+
+### Installation
 
 ```bash
+# Clone the repository
 git clone https://github.com/your-username/particle-verse.git
 cd particle-verse
-```
 
-### 2. 의존성 설치
-
-```bash
+# Install dependencies
 npm install
-```
 
-### 3. 개발 서버 실행
-
-```bash
+# Start the development server
 npm run dev
 ```
 
-브라우저에서 [http://localhost:3000](http://localhost:3000)을 열어 확인하세요.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### 4. 빌드
+### Build
 
 ```bash
 npm run build
+npm start
 ```
 
-## 🌐 Vercel 배포 가이드
+---
 
-### 방법 1: Vercel CLI 사용 (권장)
-
-#### 1. Vercel CLI 설치
-
-```bash
-npm install -g vercel
-```
-
-#### 2. Vercel 로그인
-
-```bash
-vercel login
-```
-
-브라우저에서 Vercel 계정으로 인증합니다.
-
-#### 3. 프로젝트 배포
-
-```bash
-# 프로젝트 디렉토리에서 실행
-vercel
-```
-
-처음 실행 시 다음 질문에 답합니다:
-- **Set up and deploy?**: `Y`
-- **Which scope?**: 본인 계정 선택
-- **Link to existing project?**: `N` (새 프로젝트)
-- **What's your project's name?**: `particle-verse` (또는 원하는 이름)
-- **In which directory is your code located?**: `./` (현재 디렉토리)
-
-#### 4. 프로덕션 배포
-
-```bash
-vercel --prod
-```
-
-### 방법 2: GitHub 연동 자동 배포
-
-#### 1. GitHub 저장소 생성 및 푸시
-
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin https://github.com/your-username/particle-verse.git
-git push -u origin main
-```
-
-#### 2. Vercel 웹사이트에서 설정
-
-1. [vercel.com](https://vercel.com)에 로그인
-2. **"Add New..."** → **"Project"** 클릭
-3. **"Import Git Repository"** 에서 GitHub 저장소 선택
-4. **Framework Preset**: `Next.js` 자동 감지됨
-5. **Root Directory**: `/` (기본값)
-6. **Build Command**: `npm run build` (기본값)
-7. **Output Directory**: `.next` (기본값)
-8. **"Deploy"** 클릭
-
-#### 3. 자동 배포 설정
-
-- `main` 브랜치에 푸시할 때마다 자동 배포
-- PR 생성 시 미리보기 배포 자동 생성
-
-### 환경 변수 설정 (선택사항)
-
-Vercel 대시보드 → 프로젝트 → Settings → Environment Variables에서:
-
-```
-# 예시 (필요한 경우)
-NEXT_PUBLIC_API_URL=https://api.example.com
-```
-
-## 📁 프로젝트 구조
+## 📁 Project Structure
 
 ```
 particle-verse/
 ├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── globals.css         # 전역 스타일
-│   │   ├── layout.tsx          # 루트 레이아웃
-│   │   └── page.tsx            # 메인 페이지
+│   ├── app/                        # Next.js App Router
+│   │   ├── globals.css             # Global styles & utility classes
+│   │   ├── layout.tsx              # Root layout with metadata
+│   │   └── page.tsx                # Main page (dynamic imports)
 │   ├── components/
-│   │   ├── hand/               # 손 인식 컴포넌트
-│   │   │   └── HandTracker.tsx
-│   │   ├── three/              # 3D 관련 컴포넌트
-│   │   │   ├── ParticleSystem.tsx
-│   │   │   └── Scene.tsx
-│   │   └── ui/                 # UI 컴포넌트
-│   │       ├── LoadingScreen.tsx
-│   │       ├── UIOverlay.tsx
-│   │       └── panels/
-│   │           ├── EffectsPanel.tsx
-│   │           ├── HandPanel.tsx
-│   │           ├── ParticlePanel.tsx
-│   │           ├── SourcePanel.tsx
-│   │           └── VisualPanel.tsx
-│   ├── shaders/                # GLSL 셰이더
-│   │   └── particleShaders.ts
-│   ├── store/                  # 상태 관리
-│   │   └── useAppStore.ts
-│   └── utils/                  # 유틸리티
-│       ├── particleGenerator.ts
-│       └── security.ts
-├── public/                     # 정적 파일
-├── next.config.js              # Next.js 설정
-├── tailwind.config.js          # Tailwind 설정
-├── tsconfig.json               # TypeScript 설정
-├── vercel.json                 # Vercel 배포 설정
+│   │   ├── audio/
+│   │   │   └── AudioAnalyzer.tsx    # Web Audio API frequency analysis
+│   │   ├── hand/
+│   │   │   └── HandTracker.tsx     # MediaPipe hand tracking + mobile camera
+│   │   ├── providers/
+│   │   │   └── ThemeProvider.tsx    # Dark/light theme provider
+│   │   ├── three/
+│   │   │   ├── ParticleSystem.tsx   # Shader material + uniform management
+│   │   │   └── Scene.tsx           # Canvas, camera, post-processing
+│   │   └── ui/
+│   │       ├── LoadingScreen.tsx    # Initial loading animation
+│   │       ├── UIOverlay.tsx        # Side panel + tabs + status bar
+│   │       └── panels/             # Individual settings panels (8 tabs)
+│   ├── gpgpu/
+│   │   └── computeShaders.ts       # GLSL compute shaders for GPGPU physics
+│   ├── locales/                    # i18n translations (en, ko)
+│   ├── shaders/
+│   │   └── particleShaders.ts      # GLSL vertex & fragment shaders
+│   ├── store/
+│   │   └── useAppStore.ts          # Zustand store (persisted)
+│   └── utils/
+│       ├── particleGenerator.ts    # Particle data from various sources
+│       ├── security.ts             # Input sanitization & validation
+│       └── stateSharing.ts         # URL/JSON settings export & import
+├── public/                         # Static assets
+├── next.config.js                  # Next.js configuration
+├── tailwind.config.js              # Tailwind theme & plugins
+├── tsconfig.json                   # TypeScript configuration
+├── vercel.json                     # Vercel deployment config
 └── package.json
 ```
 
-## 🎮 사용 방법
+---
 
-### 소스 설정
-1. 좌측 패널에서 **"소스"** 탭 선택
-2. 소스 타입 선택:
-   - **기본**: 구형 파티클 분포
-   - **단일 이미지**: 이미지를 파티클로 변환
-   - **큐브맵**: 6장의 이미지로 큐브맵 생성
-   - **텍스트**: 텍스트를 3D 파티클로 변환
-   - **3D 모델**: GLTF/GLB 파일 로드
+## 🏗 Architecture
 
-### 이펙트 적용
-1. **"이펙트"** 탭에서 원하는 효과 선택
-2. 이펙트 강도 조절
+### Rendering Pipeline
 
-### 파티클 설정
-- 파티클 수, 크기, 불투명도 조절
-- 애니메이션 속도 및 터뷸런스 설정
+```
+Source Data (image/text/model)
+    │
+    ▼
+particleGenerator.ts ─── generates Float32Array (positions + colors)
+    │
+    ▼
+ParticleSystem.tsx ─── creates BufferGeometry + ShaderMaterial
+    │                    manages uniforms (time, effects, hand, lighting, audio)
+    │
+    ├──► GPUComputationRenderer (GPGPU physics)
+    │    ├── velocityShader ─── spring-back, hand repulsion, audio bass pulse
+    │    └── positionShader ─── displacement integration
+    │    (writes texturePhysics → read by vertex shader)
+    │
+    ├──► AudioAnalyzer (Web Audio API)
+    │    └── AnalyserNode ─── bass/mid/treble/energy → shader uniforms
+    │
+    ▼
+particleShaders.ts
+    ├── Vertex Shader ─── effect transforms, GPGPU displacement, turbulence
+    └── Fragment Shader ── color modes, lighting glow, audio glow, opacity
+    │
+    ▼
+Scene.tsx ─── Canvas + Camera + OrbitControls + EffectComposer (Bloom)
+```
 
-### 시각 설정
-- 컬러 모드 변경 (원본, 그라데이션, 무지개 등)
-- 블룸 효과 강도 조절
+### Hand Interaction Model
 
-### 손 조작
-1. **"손 조작"** 탭에서 손 추적 활성화
-2. 웹캠 권한 허용
-3. 제스처로 파티클 조작:
-   - ✋ **손 펴기**: 파티클 밀어내기
-   - ✊ **주먹 쥐기**: 파티클 당기기
-   - 🤏 **핀치**: 파티클 모으기
+The hand interaction uses a **physics-based sand/granular** model:
 
-### 마우스/터치 조작
-- **드래그**: 카메라 회전
-- **스크롤**: 줌 인/아웃
-- **우클릭 드래그**: 카메라 이동
+1. MediaPipe detects hand landmarks in video frames
+2. Palm center position is projected into 3D scene coordinates
+3. The vertex shader computes displacement for each particle:
+   - **Cubic falloff**: `force = (1 - dist/radius)³`
+   - **Organic scatter**: Simplex noise offsets give natural granular behavior
+   - **Gradual return**: Displaced particles naturally rejoin the formation as the hand moves away
 
-## 🔒 보안 기능
+### State Management
 
-이 앱은 다음 보안 위협에 대응합니다:
+Zustand store with `persist` middleware (localStorage). All settings — particle, visual, hand, rotation, float, lighting, recording — are centralized in a single store with typed actions.
 
-| 구분 | 취약점 | 대응 방법 |
-|------|--------|----------|
-| XSS | 스크립트 삽입 | HTML 이스케이프, CSP 헤더 |
-| CSRF | 요청 위조 | SameSite 쿠키, CSRF 토큰 |
-| Clickjacking | 클릭 하이재킹 | X-Frame-Options: DENY |
-| 파일 업로드 | 악성 파일 | MIME 타입/매직넘버 검증 |
-| Open Redirect | 리다이렉트 공격 | URL 화이트리스트 |
-| Rate Limiting | 브루트포스 | 요청 횟수 제한 |
-| Input Validation | 주입 공격 | 입력 정제 |
+---
 
-## ⚡ 성능 최적화
+## 🎮 Usage
 
-- **GPU 셰이더**: 모든 파티클 계산을 GPU에서 처리
-- **동적 LOD**: 화면 거리에 따른 파티클 크기 조절
-- **적응형 DPR**: 성능에 따른 해상도 자동 조절
-- **코드 스플리팅**: 동적 임포트로 초기 로딩 최적화
-- **메모이제이션**: useMemo/useCallback으로 재렌더링 최소화
+### Source Selection
 
-## 🤝 기여
+| Source | Description |
+|--------|-------------|
+| Default | Spherical particle distribution with gradient colors |
+| Image | Upload an image → pixels become particles preserving color |
+| Cubemap | 6 images arranged as a cube surface |
+| Text | Type text → rendered to canvas → sampled as particles |
+| 3D Model | Load GLTF/GLB → mesh vertices become particles |
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+### Effects
 
-## 📄 라이선스
+Select from 11 effects in the Effects tab. Adjust intensity, rotation axis/speed, and float amplitude/frequency.
 
-MIT License - 자유롭게 사용, 수정, 배포할 수 있습니다.
+### Hand Control
 
-## 🙏 감사의 글
+1. Enable hand tracking in the **Hand Control** tab
+2. Allow webcam access
+3. Move your hand near the particle formation — particles scatter like sand
+4. Adjust sensitivity, interaction radius, and repulsion force
 
-- [Three.js](https://threejs.org/)
-- [React Three Fiber](https://docs.pmnd.rs/react-three-fiber)
-- [MediaPipe](https://mediapipe.dev/)
-- [Vercel](https://vercel.com/)
+### Camera Controls
+
+| Action | Desktop | Mobile |
+|--------|---------|--------|
+| Rotate | Left-click drag | One-finger drag |
+| Zoom | Scroll wheel | Pinch gesture |
+| Pan | Right-click drag | Two-finger drag |
+
+---
+
+## ⚡ Performance
+
+| Optimization | Description |
+|-------------|-------------|
+| GPU shaders | All particle transforms computed on the GPU |
+| GPGPU physics | Ping-pong FBO via GPUComputationRenderer for persistent particle state |
+| Adaptive DPR | `[1, 1]` on mobile, `[1, 2]` on desktop |
+| Reduced bloom | Lower intensity, higher threshold on mobile |
+| Lower camera res | 320×240 on mobile vs 640×480 on desktop |
+| MediaPipe lite | `modelComplexity: 0` on mobile devices |
+| Code splitting | Dynamic imports for Scene, HandTracker, UIOverlay |
+| Memoization | `useMemo` / `useCallback` to minimize re-renders |
+| AdaptiveDpr | drei's `<AdaptiveDpr>` auto-downgrades resolution under load |
+
+---
+
+## 🔒 Security
+
+| Threat | Mitigation |
+|--------|-----------|
+| XSS | HTML escaping, keyword filtering, CSP headers |
+| CSRF | SameSite cookies, CSRF token generation |
+| Clickjacking | `X-Frame-Options: DENY` |
+| File Upload | MIME type + magic number validation, size limits |
+| Open Redirect | URL allowlist validation |
+| SQL / Command Injection | Input pattern sanitization |
+| Path Traversal | `..` removal, special char filtering |
+| Brute Force | Client-side rate limiting |
+
+---
+
+## 🌐 Deployment
+
+### Vercel (Recommended)
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Login
+vercel login
+
+# Deploy to preview
+vercel
+
+# Deploy to production
+vercel --prod
+```
+
+### GitHub Auto-Deploy
+
+1. Push to a GitHub repository
+2. Connect the repo at [vercel.com](https://vercel.com) → **Add New Project**
+3. Framework is auto-detected as Next.js
+4. Every push to `main` triggers a production deploy; PRs get preview URLs
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **Commit** your changes: `git commit -m "feat: add amazing feature"`
+4. **Push** to the branch: `git push origin feature/amazing-feature`
+5. **Open** a Pull Request
+
+### Commit Convention
+
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat:` — New feature
+- `fix:` — Bug fix
+- `perf:` — Performance improvement
+- `refactor:` — Code restructuring
+- `docs:` — Documentation update
+- `style:` — Code style (formatting, no logic change)
+
+---
+
+## 🗺 Roadmap
+
+- [x] GPGPU particle physics (GPUComputationRenderer)
+- [x] Audio-reactive particles (microphone & file input)
+- [x] Preset sharing via URL & JSON export/import
+- [ ] Multi-user sessions via WebRTC
+- [ ] VR/AR mode with WebXR
+- [ ] Additional 3D model formats (OBJ, FBX)
+- [ ] WebGPU compute shader upgrade
+
+---
+
+## 📄 License
+
+Distributed under the **MIT License**. See `LICENSE` for details.
+
+---
+
+## 🙏 Acknowledgements
+
+- [Three.js](https://threejs.org/) — WebGL 3D library
+- [React Three Fiber](https://docs.pmnd.rs/react-three-fiber) — React renderer for Three.js
+- [drei](https://github.com/pmndrs/drei) — Useful helpers for R3F
+- [MediaPipe](https://mediapipe.dev/) — Cross-platform ML solutions
+- [Zustand](https://github.com/pmndrs/zustand) — Lightweight state management
+- [Framer Motion](https://www.framer.com/motion/) — Animation library
+- [Vercel](https://vercel.com/) — Deployment platform

@@ -1,11 +1,12 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import ThemeProvider from '@/components/providers/ThemeProvider';
+import { decodeSettingsFromURL } from '@/utils/stateSharing';
 
-// 동적 임포트로 코드 스플리팅 최적화
+// Optimize code splitting with dynamic imports
 const Scene = dynamic(() => import('@/components/three/Scene'), {
   ssr: false,
   loading: () => <LoadingScreen />
@@ -19,21 +20,33 @@ const HandTracker = dynamic(() => import('@/components/hand/HandTracker'), {
   ssr: false
 });
 
+const AudioAnalyzer = dynamic(() => import('@/components/audio/AudioAnalyzer'), {
+  ssr: false
+});
+
 export default function Home() {
+  // Apply shared settings from URL on mount
+  useEffect(() => {
+    decodeSettingsFromURL();
+  }, []);
+
   return (
     <ThemeProvider>
       <main className="relative w-screen h-screen overflow-hidden bg-black">
-        {/* 3D 씬 */}
+        {/* 3D Scene */}
         <div className="canvas-container">
           <Suspense fallback={<LoadingScreen />}>
             <Scene />
           </Suspense>
         </div>
 
-        {/* 손 추적 */}
+        {/* Hand tracking */}
         <HandTracker />
 
-        {/* UI 오버레이 */}
+        {/* Audio analyzer */}
+        <AudioAnalyzer />
+
+        {/* UI overlay */}
         <UIOverlay />
       </main>
     </ThemeProvider>

@@ -23,7 +23,7 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* 스크롤바 커스터마이징 - 세련된 디자인 */
+/* Scrollbar customization - refined design */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -54,13 +54,13 @@ body {
   background-clip: padding-box;
 }
 
-/* Firefox 스크롤바 */
+/* Firefox scrollbar */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb, rgba(14, 165, 233, 0.5)) var(--scrollbar-track, rgba(15, 23, 42, 0.3));
 }
 
-/* 글래스모피즘 유틸리티 */
+/* Glassmorphism utilities */
 @layer utilities {
   .glass {
     background: rgba(15, 23, 42, 0.7);
@@ -98,7 +98,7 @@ body {
   }
 }
 
-/* 캔버스 컨테이너 */
+/* Canvas container */
 .canvas-container {
   position: fixed;
   top: 0;
@@ -108,7 +108,7 @@ body {
   z-index: 0;
 }
 
-/* UI 오버레이 */
+/* UI overlay */
 .ui-overlay {
   position: fixed;
   z-index: 10;
@@ -119,7 +119,7 @@ body {
   pointer-events: auto;
 }
 
-/* 버튼 스타일 */
+/* Button styles */
 .btn {
   @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 ease-out;
   @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-dark-900;
@@ -144,7 +144,7 @@ body {
   @apply hover:bg-dark-800/50 active:scale-95;
 }
 
-/* 인풋 스타일 */
+/* Input styles */
 .input {
   @apply w-full px-4 py-2 rounded-lg bg-dark-800/50 border border-dark-600;
   @apply text-white placeholder-dark-400;
@@ -152,7 +152,7 @@ body {
   @apply transition-all duration-200;
 }
 
-/* 슬라이더 스타일 */
+/* Slider styles */
 .slider {
   @apply w-full h-2 rounded-full bg-dark-700 appearance-none cursor-pointer;
 }
@@ -168,7 +168,7 @@ body {
   @apply shadow-lg shadow-primary-500/30;
 }
 
-/* 토글 스위치 */
+/* Toggle switch */
 .toggle {
   @apply relative inline-flex h-6 w-11 items-center rounded-full;
   @apply bg-dark-600 transition-colors duration-200;
@@ -187,12 +187,12 @@ body {
   @apply translate-x-6;
 }
 
-/* 패널 스타일 */
+/* Panel styles */
 .panel {
   @apply glass rounded-2xl p-4 shadow-2xl;
 }
 
-/* 애니메이션 */
+/* Animations */
 @keyframes float {
   0%, 100% {
     transform: translateY(0px);
@@ -206,12 +206,12 @@ body {
   animation: float 3s ease-in-out infinite;
 }
 
-/* 로딩 스피너 */
+/* Loading spinner */
 .spinner {
   @apply w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin;
 }
 
-/* 드롭존 */
+/* Dropzone */
 .dropzone {
   @apply border-2 border-dashed border-dark-500 rounded-xl p-8;
   @apply transition-all duration-300 cursor-pointer;
@@ -222,7 +222,7 @@ body {
   @apply border-primary-400 bg-primary-500/10;
 }
 
-/* 탭 스타일 */
+/* Tab styles */
 .tab {
   @apply px-4 py-2 rounded-lg text-sm font-medium;
   @apply text-dark-400 transition-all duration-200;
@@ -233,13 +233,13 @@ body {
   @apply text-white bg-dark-800;
 }
 
-/* 카드 스타일 */
+/* Card styles */
 .card {
   @apply glass-light rounded-xl p-4 transition-all duration-200;
   @apply hover:bg-dark-700/50;
 }
 
-/* 툴팁 */
+/* Tooltip */
 .tooltip {
   @apply absolute z-50 px-2 py-1 text-xs text-white bg-dark-800 rounded;
   @apply opacity-0 invisible transition-all duration-200;

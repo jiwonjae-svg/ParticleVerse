@@ -6,7 +6,7 @@ export default function LoadingScreen() {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black z-50">
       <div className="text-center">
-        {/* 로고 애니메이션 */}
+        {/* Logo animation */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -14,7 +14,7 @@ export default function LoadingScreen() {
           className="mb-8"
         >
           <div className="relative w-24 h-24 mx-auto">
-            {/* 파티클 효과 */}
+            {/* Particle effect */}
             {[...Array(12)].map((_, i) => (
               <motion.div
                 key={i}
@@ -38,7 +38,7 @@ export default function LoadingScreen() {
               />
             ))}
 
-            {/* 중앙 원 */}
+            {/* Center circle */}
             <motion.div
               className="absolute inset-0 rounded-full border-2 border-primary-500"
               animate={{
@@ -54,7 +54,7 @@ export default function LoadingScreen() {
           </div>
         </motion.div>
 
-        {/* 텍스트 */}
+        {/* Text */}
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -70,10 +70,10 @@ export default function LoadingScreen() {
           transition={{ delay: 0.5, duration: 0.5 }}
           className="text-dark-400 text-sm"
         >
-          3D 환경을 준비하고 있습니다...
+          Preparing 3D environment...
         </motion.p>
 
-        {/* 프로그레스 바 */}
+        {/* Progress bar */}
         <motion.div
           initial={{ opacity: 0, width: 0 }}
           animate={{ opacity: 1, width: '200px' }}

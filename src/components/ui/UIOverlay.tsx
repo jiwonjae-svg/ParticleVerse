@@ -17,6 +17,7 @@ import {
   RotateCcw,
   Video,
   Cog,
+  Music,
 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { t } from '@/locales';
@@ -27,6 +28,7 @@ import VisualPanel from './panels/VisualPanel';
 import HandPanel from './panels/HandPanel';
 import SettingsPanel from './panels/SettingsPanel';
 import RecordPanel from './panels/RecordPanel';
+import AudioPanel from './panels/AudioPanel';
 
 const tabs = [
   { id: 'source', labelKey: 'source', icon: Image },
@@ -34,6 +36,7 @@ const tabs = [
   { id: 'particles', labelKey: 'particlesTab', icon: Box },
   { id: 'visual', labelKey: 'visual', icon: Palette },
   { id: 'hand', labelKey: 'handControl', icon: Hand },
+  { id: 'audio', labelKey: 'audioTab', icon: Music },
   { id: 'record', labelKey: 'record', icon: Video },
   { id: 'settings', labelKey: 'settingsTab', icon: Cog },
 ];
@@ -56,13 +59,13 @@ export default function UIOverlay() {
 
   return (
     <>
-      {/* 상단 바 */}
+      {/* Top bar */}
       <motion.div
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="ui-overlay top-0 left-0 right-0 p-4 flex justify-between items-center"
       >
-        {/* 로고 */}
+        {/* Logo */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-lg shadow-primary-500/30">
             <Sparkles className="w-5 h-5 text-white" />
@@ -73,9 +76,9 @@ export default function UIOverlay() {
           </div>
         </div>
 
-        {/* 상태 표시 */}
+        {/* Status display */}
         <div className="flex items-center gap-4">
-          {/* 성능 모니터 */}
+          {/* Performance monitor */}
           <div className="glass px-3 py-1.5 rounded-lg flex items-center gap-3 text-xs">
             <div className="flex items-center gap-1.5">
               <Activity className="w-3.5 h-3.5 text-green-400" />
@@ -95,7 +98,7 @@ export default function UIOverlay() {
             )}
           </div>
 
-          {/* 버튼들 */}
+          {/* Buttons */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowInfo(!showInfo)}
@@ -122,7 +125,7 @@ export default function UIOverlay() {
         </div>
       </motion.div>
 
-      {/* 사이드 패널 */}
+      {/* Side panel */}
       <AnimatePresence>
         {isPanelVisible && (
           <motion.div
@@ -130,10 +133,10 @@ export default function UIOverlay() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="ui-overlay left-0 top-20 bottom-4 w-80 ml-4"
+            className="ui-overlay left-0 top-20 bottom-4 w-[340px] ml-4"
           >
             <div className="panel h-full flex flex-col">
-              {/* 탭 헤더 */}
+              {/* Tab header */}
               <div className="flex gap-2 mb-4 p-1 bg-dark-800/50 rounded-xl overflow-x-auto">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
@@ -153,8 +156,8 @@ export default function UIOverlay() {
                 })}
               </div>
 
-              {/* 탭 콘텐츠 */}
-              <div className="flex-1 overflow-y-auto overflow-x-hidden">
+              {/* Tab content */}
+              <div className="flex-1 overflow-y-auto overflow-x-hidden px-1">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeTab}
@@ -168,6 +171,7 @@ export default function UIOverlay() {
                     {activeTab === 'particles' && <ParticlePanel />}
                     {activeTab === 'visual' && <VisualPanel />}
                     {activeTab === 'hand' && <HandPanel />}
+                    {activeTab === 'audio' && <AudioPanel />}
                     {activeTab === 'settings' && <SettingsPanel />}
                     {activeTab === 'record' && <RecordPanel />}
                   </motion.div>
@@ -178,7 +182,7 @@ export default function UIOverlay() {
         )}
       </AnimatePresence>
 
-      {/* 패널 토글 버튼 (패널이 숨겨졌을 때) */}
+      {/* Panel toggle button (when panel is hidden) */}
       <AnimatePresence>
         {!isPanelVisible && (
           <motion.button
@@ -193,7 +197,7 @@ export default function UIOverlay() {
         )}
       </AnimatePresence>
 
-      {/* 로딩 오버레이 */}
+      {/* Loading overlay */}
       <AnimatePresence>
         {isLoading && (
           <motion.div
@@ -210,7 +214,7 @@ export default function UIOverlay() {
         )}
       </AnimatePresence>
 
-      {/* 에러 메시지 */}
+      {/* Error message */}
       <AnimatePresence>
         {error && (
           <motion.div
@@ -226,7 +230,7 @@ export default function UIOverlay() {
         )}
       </AnimatePresence>
 
-      {/* 정보 모달 */}
+      {/* Info modal */}
       <AnimatePresence>
         {showInfo && (
           <motion.div
@@ -255,9 +259,7 @@ export default function UIOverlay() {
                   <strong className="text-white">{t('infoHandControl')}</strong> {t('infoHandControlDesc')}
                 </p>
                 <ul className="list-disc list-inside ml-4 space-y-1">
-                  <li>{t('openHand')}: {t('push')}</li>
-                  <li>{t('fist')}: {t('pull')}</li>
-                  <li>{t('pinch')}: {t('gather')}</li>
+                  <li>{t('handPhysicsDesc')}</li>
                 </ul>
                 <p>
                   <strong className="text-white">{t('infoMouseControl')}</strong> {t('infoMouseControlDesc')}

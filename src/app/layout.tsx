@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'ParticleVerse | 3D Particle Visualization',
-  description: '인터랙티브 3D 파티클 시각화 경험 - 손동작으로 파티클을 조작하세요',
+  description: 'Interactive 3D particle visualization experience - control particles with hand gestures',
   keywords: ['3D', 'particles', 'visualization', 'hand tracking', 'three.js', 'interactive'],
   authors: [{ name: 'ParticleVerse' }],
   robots: 'index, follow',
@@ -14,14 +14,14 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'ParticleVerse | 3D Particle Visualization',
-    description: '인터랙티브 3D 파티클 시각화 경험',
+    description: 'Interactive 3D particle visualization experience',
     type: 'website',
     locale: 'ko_KR',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'ParticleVerse',
-    description: '인터랙티브 3D 파티클 시각화 경험',
+    description: 'Interactive 3D particle visualization experience',
   },
 };
 

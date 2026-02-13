@@ -8,10 +8,10 @@ const translations: Record<Language, typeof en> = {
   ko,
 };
 
-// 현재 언어 상태 (기본값: 영어)
+// Current language state (default: English)
 let currentLanguage: Language = 'en';
 
-// 브라우저에서 저장된 언어 설정 로드
+// Load saved language setting from browser
 if (typeof window !== 'undefined') {
   try {
     const stored = localStorage.getItem('particle-verse-storage');
@@ -22,7 +22,7 @@ if (typeof window !== 'undefined') {
       }
     }
   } catch (e) {
-    // 로컬스토리지 접근 실패 시 기본값 사용
+    // Use default if localStorage access fails
   }
 }
 
@@ -39,7 +39,7 @@ export function getTranslation(lang: Language, key: string): string {
   return translations[lang]?.[typedKey] || translations.en[typedKey] || key;
 }
 
-// 단일 인수 버전 (현재 언어 사용)
+// Single argument version (uses current language)
 export function t(key: string, params?: Record<string, string | number>): string {
   let text = getTranslation(currentLanguage, key);
   
@@ -52,7 +52,7 @@ export function t(key: string, params?: Record<string, string | number>): string
   return text;
 }
 
-// 언어 지정 버전
+// Language-specific version
 export function tWithLang(lang: Language, key: string, params?: Record<string, string | number>): string {
   let text = getTranslation(lang, key);
   

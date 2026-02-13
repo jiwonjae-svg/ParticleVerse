@@ -1,10 +1,12 @@
 ﻿'use client';
 
-import { useRef, useMemo, useEffect, useCallback, useState } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useRef, useMemo, useEffect, useCallback } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
+import { GPUComputationRenderer } from 'three-stdlib';
 import { useAppStore, ParticleEffect, ColorMode, LightingMode } from '@/store/useAppStore';
 import { particleVertexShader, particleFragmentShader } from '@/shaders/particleShaders';
+import { velocityComputeShader, positionComputeShader } from '@/gpgpu/computeShaders';
 
 const effectToIndex: Record<ParticleEffect, number> = {
   none: 0,
@@ -37,15 +39,6 @@ const lightingModeToIndex: Record<LightingMode, number> = {
   wave: 5,
 };
 
-const gestureToIndex: Record<string, number> = {
-  none: 0,
-  open: 1,
-  closed: 2,
-  pinch: 3,
-  point: 4,
-  peace: 5,
-};
-
 interface ParticleSystemProps {
   positions: Float32Array;
   colors: Float32Array;
@@ -69,17 +62,15 @@ export default function ParticleSystem({
   const effectTransitionStageRef = useRef<'idle' | 'fadeOut' | 'showNone' | 'fadeIn'>('idle');
   const targetEffectRef = useRef<ParticleEffect>('none');
   
-  // 색상 트랜지션 refs
-  const colorTransitionRef = useRef(1); // 1 = 완료 상태
-  const previousColorModeRef = useRef<ColorMode>('original');
-  const previousPrimaryColorRef = useRef(new THREE.Color('#0ea5e9'));
-  const previousSecondaryColorRef = useRef(new THREE.Color('#d946ef'));
+  // Color transition refs (prev/current mode with blend factor)
+  const prevColorModeRef = useRef<ColorMode>('original');
+  const currentColorModeRef = useRef<ColorMode>('original');
+  const colorBlendRef = useRef(1); // 1 = fully showing current mode
   const smoothPrimaryColorRef = useRef(new THREE.Color('#0ea5e9'));
   const smoothSecondaryColorRef = useRef(new THREE.Color('#d946ef'));
-  const smoothColorModeIndexRef = useRef(0); // 부드러운 색상 모드 전환
   
-  // 라이팅 트랜지션 refs
-  const lightingTransitionRef = useRef(1); // 1 = 완료 상태
+  // Lighting transition refs
+  const lightingTransitionRef = useRef(1); // 1 = complete
   const previousLightingModeRef = useRef<LightingMode>('none');
   const previousLightingSpeedRef = useRef(1);
   const previousLightingIntensityRef = useRef(0.5);
@@ -99,24 +90,34 @@ export default function ParticleSystem({
     rightHand,
     currentGesture,
     setParticleCount,
+    audioData,
   } = useAppStore();
 
-  // 손 제스처 부드러운 트랜지션 ref
+  // Smooth hand position refs
   const smoothLeftHandRef = useRef(new THREE.Vector3());
   const smoothRightHandRef = useRef(new THREE.Vector3());
   
-  // 손 설정 부드러운 트랜지션 refs
+  // Smooth hand settings refs
   const smoothHandRadiusRef = useRef(100);
   const smoothAttractionForceRef = useRef(0.5);
   const smoothRepulsionForceRef = useRef(0.5);
+
+  // GPGPU refs
+  const gpuComputeRef = useRef<GPUComputationRenderer | null>(null);
+  const posVarRef = useRef<any>(null);
+  const velVarRef = useRef<any>(null);
+  const gpuEnabledRef = useRef(false);
+
+  // WebGL renderer for GPGPU
+  const { gl } = useThree();
   
-  // 파티클 설정 부드러운 트랜지션 refs
+  // Smooth particle settings refs
   const smoothSizeRef = useRef(2);
   const smoothOpacityRef = useRef(0.8);
   const smoothSpeedRef = useRef(1);
   const smoothTurbulenceRef = useRef(0.5);
 
-  // 라이팅 설정 기본값
+  // Lighting settings with defaults
   const lightingSettings = visualSettings.lightingSettings || {
     mode: 'none' as LightingMode,
     speed: 1,
@@ -124,7 +125,7 @@ export default function ParticleSystem({
     radius: 100,
   };
 
-  // 이펙트 변경 감지 및 트랜지션 시작
+  // Effect change detection and transition start
   useEffect(() => {
     if (currentEffect !== previousEffectRef.current && effectTransitionStageRef.current === 'idle') {
       targetEffectRef.current = currentEffect;
@@ -137,25 +138,16 @@ export default function ParticleSystem({
     }
   }, [currentEffect, effectIntensity]);
   
-  // 색상 변경 감지 및 트랜지션 시작
+  // Color mode change detection - track previous and current for smooth blending
   useEffect(() => {
-    const currentPrimary = new THREE.Color(visualSettings.primaryColor);
-    const currentSecondary = new THREE.Color(visualSettings.secondaryColor);
-    
-    // 색상 모드가 변경되었거나 색상 값이 변경되었을 경우
-    if (
-      visualSettings.colorMode !== previousColorModeRef.current ||
-      !currentPrimary.equals(previousPrimaryColorRef.current) ||
-      !currentSecondary.equals(previousSecondaryColorRef.current)
-    ) {
-      colorTransitionRef.current = 0;
-      previousColorModeRef.current = visualSettings.colorMode;
-      previousPrimaryColorRef.current.copy(currentPrimary);
-      previousSecondaryColorRef.current.copy(currentSecondary);
+    if (visualSettings.colorMode !== currentColorModeRef.current) {
+      prevColorModeRef.current = currentColorModeRef.current;
+      currentColorModeRef.current = visualSettings.colorMode;
+      colorBlendRef.current = 0; // Start transition from previous to current
     }
-  }, [visualSettings.colorMode, visualSettings.primaryColor, visualSettings.secondaryColor]);
+  }, [visualSettings.colorMode]);
   
-  // 라이팅 변경 감지 및 트랜지션 시작
+  // Lighting change detection and transition start
   useEffect(() => {
     if (
       lightingSettings.mode !== previousLightingModeRef.current ||
@@ -171,12 +163,12 @@ export default function ParticleSystem({
     }
   }, [lightingSettings.mode, lightingSettings.speed, lightingSettings.intensity, lightingSettings.radius]);
 
-  // 파티클 카운트 업데이트
+  // Update particle count
   useEffect(() => {
     setParticleCount(positions.length / 3);
   }, [positions.length, setParticleCount]);
 
-  // 지오메트리 생성 - 트랜지션을 위한 추가 어트리뷰트 포함
+  // Create geometry with additional attributes for transitions
   const geometry = useMemo(() => {
     const geo = new THREE.BufferGeometry();
     const count = positions.length / 3;
@@ -185,28 +177,37 @@ export default function ParticleSystem({
     geo.setAttribute('originalPosition', new THREE.BufferAttribute(positions.slice(), 3));
     geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     
-    // 타겟 포지션 (트랜지션용)
+    // Target position (for transitions)
     const targets = targetPositions || positions.slice();
     geo.setAttribute('targetPosition', new THREE.BufferAttribute(targets, 3));
     
-    // 타겟 색상 (트랜지션용)
+    // Target color (for transitions)
     const targetCols = targetColors || colors.slice();
     geo.setAttribute('targetColor', new THREE.BufferAttribute(targetCols, 3));
     
-    // 랜덤 오프셋 (애니메이션 다양성)
+    // Random offsets (animation diversity)
     const randomOffsets = new Float32Array(count);
     for (let i = 0; i < count; i++) {
       randomOffsets[i] = Math.random();
     }
     geo.setAttribute('randomOffset', new THREE.BufferAttribute(randomOffsets, 1));
 
-    // 바운딩 스피어 계산
+    // GPGPU texture coordinates
+    const texSize = Math.ceil(Math.sqrt(count));
+    const texCoords = new Float32Array(count * 2);
+    for (let i = 0; i < count; i++) {
+      texCoords[i * 2] = (i % texSize + 0.5) / texSize;
+      texCoords[i * 2 + 1] = (Math.floor(i / texSize) + 0.5) / texSize;
+    }
+    geo.setAttribute('texCoord', new THREE.BufferAttribute(texCoords, 2));
+
+    // Compute bounding sphere
     geo.computeBoundingSphere();
 
     return geo;
   }, [positions, colors, targetPositions, targetColors]);
 
-  // 유니폼 생성
+  // Create uniforms
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
@@ -216,7 +217,10 @@ export default function ParticleSystem({
       uTurbulence: { value: particleSettings.turbulence },
       uEffect: { value: effectToIndex[currentEffect] },
       uEffectIntensity: { value: effectIntensity },
-      uColorMode: { value: colorModeToIndex[visualSettings.colorMode] },
+      // Color mode uniforms for smooth transition
+      uPrevColorMode: { value: 0 },
+      uCurrColorMode: { value: 0 },
+      uColorBlend: { value: 1.0 },
       uPrimaryColor: { value: new THREE.Color(visualSettings.primaryColor) },
       uSecondaryColor: { value: new THREE.Color(visualSettings.secondaryColor) },
       uLeftHand: { value: new THREE.Vector3() },
@@ -225,58 +229,64 @@ export default function ParticleSystem({
       uAttractionForce: { value: handSettings.attractionForce },
       uRepulsionForce: { value: handSettings.repulsionForce },
       uGesture: { value: 0 },
-      // 회전 유니폼
+      // Rotation uniforms
       uRotateAxisX: { value: rotationSettings.axisX },
       uRotateAxisY: { value: rotationSettings.axisY },
       uRotateAxisZ: { value: rotationSettings.axisZ },
-      // 새로운 유니폼
+      uRotateSpeed: { value: rotationSettings.speed },
+      // Lighting uniforms
       uLightingMode: { value: lightingModeToIndex[lightingSettings.mode] },
       uLightingSpeed: { value: lightingSettings.speed },
       uLightingIntensity: { value: lightingSettings.intensity },
       uLightingRadius: { value: lightingSettings.radius },
       uTransitionProgress: { value: 0 },
       uFloatOffset: { value: 0 },
-      uColorTransitionProgress: { value: 0 },
+      // GPGPU
+      texturePhysics: { value: null },
+      uUseGPGPU: { value: false },
+      // Audio
+      uAudioBass: { value: 0 },
+      uAudioMid: { value: 0 },
+      uAudioTreble: { value: 0 },
+      uAudioEnergy: { value: 0 },
     }),
     []
   );
 
-  // 유니폼 업데이트
+  // Update uniforms
   const updateUniforms = useCallback(() => {
     if (!materialRef.current) return;
 
     const mat = materialRef.current;
-    // 파티클 설정 - useFrame에서 부드럽게 보간됨
+    // Particle settings - smoothly interpolated in useFrame
     mat.uniforms.uSize.value = smoothSizeRef.current;
     mat.uniforms.uOpacity.value = smoothOpacityRef.current;
     mat.uniforms.uSpeed.value = smoothSpeedRef.current;
     mat.uniforms.uTurbulence.value = smoothTurbulenceRef.current;
-    // 이펙트는 useFrame에서 단계별로 처리됨
     
-    // 색상 모드는 useFrame에서 부드럽게 보간됨
-    mat.uniforms.uColorMode.value = smoothColorModeIndexRef.current;
-    // 색상은 useFrame에서 부드럽게 보간됨
+    // Color - smoothly interpolated
     mat.uniforms.uPrimaryColor.value.copy(smoothPrimaryColorRef.current);
     mat.uniforms.uSecondaryColor.value.copy(smoothSecondaryColorRef.current);
     
-    // 손 설정 - useFrame에서 부드럽게 보간됨
+    // Hand settings - smoothly interpolated
     mat.uniforms.uHandRadius.value = smoothHandRadiusRef.current;
     mat.uniforms.uAttractionForce.value = smoothAttractionForceRef.current;
     mat.uniforms.uRepulsionForce.value = smoothRepulsionForceRef.current;
-    mat.uniforms.uGesture.value = gestureToIndex[currentGesture] || 0;
+    mat.uniforms.uGesture.value = 0; // Gesture index no longer used for physics-based interaction
     
-    // 회전 설정
+    // Rotation settings
     mat.uniforms.uRotateAxisX.value = rotationSettings.axisX;
     mat.uniforms.uRotateAxisY.value = rotationSettings.axisY;
     mat.uniforms.uRotateAxisZ.value = rotationSettings.axisZ;
+    mat.uniforms.uRotateSpeed.value = rotationSettings.speed;
     
-    // 라이팅 유니폼 - useFrame에서 부드럽게 보간됨
+    // Lighting uniforms - smoothly interpolated
     mat.uniforms.uLightingMode.value = lightingModeToIndex[lightingSettings.mode];
     mat.uniforms.uLightingSpeed.value = smoothLightingSpeedRef.current;
     mat.uniforms.uLightingIntensity.value = smoothLightingIntensityRef.current;
     mat.uniforms.uLightingRadius.value = smoothLightingRadiusRef.current;
 
-    // 손 제스처 업데이트
+    // Hand position updates
     if (leftHand && handSettings.enabled) {
       mat.uniforms.uLeftHand.value.set(leftHand.x, leftHand.y, leftHand.z);
     } else {
@@ -301,13 +311,13 @@ export default function ParticleSystem({
     rotationSettings,
   ]);
 
-  // 매 프레임 업데이트
+  // Per-frame update
   useFrame((state, delta) => {
     if (materialRef.current) {
       const time = state.clock.elapsedTime;
       materialRef.current.uniforms.uTime.value = time;
       
-      // 손 제스처 부드러운 보간 (lerp)
+      // Smooth hand position interpolation (lerp)
       const lerpFactor = Math.min(delta * handSettings.gestureTransitionSpeed * 5, 1);
       
       if (leftHand && handSettings.enabled) {
@@ -328,7 +338,7 @@ export default function ParticleSystem({
         materialRef.current.uniforms.uRightHand.value.copy(smoothRightHandRef.current);
       }
       
-      // 이펙트 전환: fadeOut -> showNone(구형 잠시 보여주기) -> fadeIn
+      // Effect transition: fadeOut -> showNone (brief sphere view) -> fadeIn
       if (effectTransitionStageRef.current !== 'idle') {
         effectTransitionRef.current = Math.min(
           effectTransitionRef.current + delta * particleSettings.transitionSpeed * 2,
@@ -336,13 +346,13 @@ export default function ParticleSystem({
         );
         
         if (effectTransitionStageRef.current === 'fadeOut') {
-          // 현재 이펙트에서 none으로 페이드 아웃
+          // Fade out from current effect to none
           const fadeOutProgress = effectTransitionRef.current;
           materialRef.current.uniforms.uEffect.value = effectToIndex[previousEffectRef.current];
           materialRef.current.uniforms.uEffectIntensity.value = effectIntensity * (1 - fadeOutProgress);
           
           if (fadeOutProgress >= 1) {
-            // 페이드 아웃 완료, none(구형) 상태로 전환
+            // Fade out complete, switch to none (sphere) state
             effectTransitionStageRef.current = 'showNone';
             effectTransitionRef.current = 0;
             previousEffectRef.current = 'none';
@@ -350,56 +360,53 @@ export default function ParticleSystem({
             materialRef.current.uniforms.uEffectIntensity.value = 0;
           }
         } else if (effectTransitionStageRef.current === 'showNone') {
-          // none(구형) 상태를 잠시 보여줌
+          // Show none (sphere) state briefly
           materialRef.current.uniforms.uEffect.value = effectToIndex['none'];
           materialRef.current.uniforms.uEffectIntensity.value = 0;
           
           if (effectTransitionRef.current >= 0.3) {
-            // 구형을 충분히 보여줬으면 fadeIn 시작
+            // Shown sphere long enough, start fade in
             effectTransitionStageRef.current = 'fadeIn';
             effectTransitionRef.current = 0;
           }
         } else if (effectTransitionStageRef.current === 'fadeIn') {
-          // none에서 새로운 이펙트로 페이드 인
+          // Fade in from none to new effect
           const fadeInProgress = effectTransitionRef.current;
           materialRef.current.uniforms.uEffect.value = effectToIndex[targetEffectRef.current];
           materialRef.current.uniforms.uEffectIntensity.value = effectIntensity * fadeInProgress;
           
           if (fadeInProgress >= 1) {
-            // 페이드 인 완료
+            // Fade in complete
             effectTransitionStageRef.current = 'idle';
             previousEffectRef.current = targetEffectRef.current;
           }
         }
       } else {
-        // 전환이 없을 때는 현재 이펙트 유지
+        // No transition in progress - maintain current effect
         materialRef.current.uniforms.uEffect.value = effectToIndex[currentEffect];
         materialRef.current.uniforms.uEffectIntensity.value = effectIntensity;
       }
       
-      // 색상 트랜지션 진행 (샌드아트처럼 부드럽게)
-      if (colorTransitionRef.current < 1) {
-        colorTransitionRef.current = Math.min(
-          colorTransitionRef.current + delta * visualSettings.colorTransitionSpeed * 2,
+      // Color mode smooth transition (blend between previous and current mode)
+      if (colorBlendRef.current < 1) {
+        colorBlendRef.current = Math.min(
+          colorBlendRef.current + delta * (visualSettings.colorTransitionSpeed || 0.5) * 1.5,
           1
         );
       }
+      materialRef.current.uniforms.uPrevColorMode.value = colorModeToIndex[prevColorModeRef.current];
+      materialRef.current.uniforms.uCurrColorMode.value = colorModeToIndex[currentColorModeRef.current];
+      materialRef.current.uniforms.uColorBlend.value = colorBlendRef.current;
       
-      // 색상 모드 인덱스 보간 (부드럽게 전환)
-      const targetColorModeIndex = colorModeToIndex[visualSettings.colorMode];
-      const colorModeIndexLerpFactor = Math.min(delta * visualSettings.colorTransitionSpeed * 2, 1);
-      smoothColorModeIndexRef.current += (targetColorModeIndex - smoothColorModeIndexRef.current) * colorModeIndexLerpFactor;
-      materialRef.current.uniforms.uColorMode.value = smoothColorModeIndexRef.current;
-      
-      // 색상 보간 (부드럽게 전환)
+      // Smooth color interpolation
       const targetPrimary = new THREE.Color(visualSettings.primaryColor);
       const targetSecondary = new THREE.Color(visualSettings.secondaryColor);
-      const colorLerpFactor = Math.min(delta * visualSettings.colorTransitionSpeed * 3, 1);
+      const colorLerpFactor = Math.min(delta * (visualSettings.colorTransitionSpeed || 0.5) * 3, 1);
       
       smoothPrimaryColorRef.current.lerp(targetPrimary, colorLerpFactor);
       smoothSecondaryColorRef.current.lerp(targetSecondary, colorLerpFactor);
       
-      // 라이팅 트랜지션 진행 (샌드아트처럼 부드럽게)
+      // Lighting transition
       if (lightingTransitionRef.current < 1) {
         lightingTransitionRef.current = Math.min(
           lightingTransitionRef.current + delta * particleSettings.transitionSpeed * 2,
@@ -407,21 +414,21 @@ export default function ParticleSystem({
         );
       }
       
-      // 라이팅 속성 보간 (부드럽게 전환)
+      // Smooth lighting interpolation
       const lightingLerpFactor = Math.min(delta * particleSettings.transitionSpeed * 3, 1);
       
       smoothLightingSpeedRef.current += (lightingSettings.speed - smoothLightingSpeedRef.current) * lightingLerpFactor;
       smoothLightingIntensityRef.current += (lightingSettings.intensity - smoothLightingIntensityRef.current) * lightingLerpFactor;
       smoothLightingRadiusRef.current += (lightingSettings.radius - smoothLightingRadiusRef.current) * lightingLerpFactor;
       
-      // 손 설정 보간 (샌드아트처럼 부드럽게)
+      // Smooth hand settings interpolation
       const handLerpFactor = Math.min(delta * handSettings.gestureTransitionSpeed * 3, 1);
       
       smoothHandRadiusRef.current += (handSettings.interactionRadius - smoothHandRadiusRef.current) * handLerpFactor;
       smoothAttractionForceRef.current += (handSettings.attractionForce - smoothAttractionForceRef.current) * handLerpFactor;
       smoothRepulsionForceRef.current += (handSettings.repulsionForce - smoothRepulsionForceRef.current) * handLerpFactor;
       
-      // 파티클 설정 보간 (샌드아트처럼 부드럽게)
+      // Smooth particle settings interpolation
       const particleLerpFactor = Math.min(delta * particleSettings.transitionSpeed * 3, 1);
       
       smoothSizeRef.current += (particleSettings.size - smoothSizeRef.current) * particleLerpFactor;
@@ -429,7 +436,7 @@ export default function ParticleSystem({
       smoothSpeedRef.current += (particleSettings.speed - smoothSpeedRef.current) * particleLerpFactor;
       smoothTurbulenceRef.current += (particleSettings.turbulence - smoothTurbulenceRef.current) * particleLerpFactor;
       
-      // 트랜지션 프로그레스 업데이트
+      // Update transition progress for position/color transitions
       if (targetPositions) {
         transitionProgressRef.current = Math.min(
           transitionProgressRef.current + delta * particleSettings.transitionSpeed,
@@ -438,21 +445,126 @@ export default function ParticleSystem({
         materialRef.current.uniforms.uTransitionProgress.value = transitionProgressRef.current;
       }
       
-      // 플로트 효과: 시간 기반의 사인파로 움직임
+      // Float effect: sine-based offset computed on CPU
       if (currentEffect === 'float') {
         floatOffsetRef.current = Math.sin(time * 0.5) * 0.5 + 0.5;
         materialRef.current.uniforms.uFloatOffset.value = floatOffsetRef.current;
       }
+
+      // GPGPU compute pass
+      if (gpuComputeRef.current && velVarRef.current && posVarRef.current && gpuEnabledRef.current) {
+        const velUniforms = velVarRef.current.material.uniforms;
+        velUniforms.uTime.value = time;
+        velUniforms.uDeltaTime.value = Math.min(delta, 0.05);
+        velUniforms.uLeftHand.value.copy(smoothLeftHandRef.current);
+        velUniforms.uRightHand.value.copy(smoothRightHandRef.current);
+        velUniforms.uHandRadius.value = smoothHandRadiusRef.current;
+        velUniforms.uRepulsionForce.value = smoothRepulsionForceRef.current;
+        velUniforms.uAttractionForce.value = smoothAttractionForceRef.current;
+        velUniforms.uAudioBass.value = audioData?.bass || 0;
+        velUniforms.uAudioEnergy.value = audioData?.energy || 0;
+
+        posVarRef.current.material.uniforms.uDeltaTime.value = Math.min(delta, 0.05);
+
+        gpuComputeRef.current.compute();
+
+        const posTexture = gpuComputeRef.current.getCurrentRenderTarget(posVarRef.current).texture;
+        materialRef.current.uniforms.texturePhysics.value = posTexture;
+        materialRef.current.uniforms.uUseGPGPU.value = true;
+      } else {
+        materialRef.current.uniforms.uUseGPGPU.value = false;
+      }
+
+      // Audio reactive uniforms
+      materialRef.current.uniforms.uAudioBass.value = audioData?.bass || 0;
+      materialRef.current.uniforms.uAudioMid.value = audioData?.mid || 0;
+      materialRef.current.uniforms.uAudioTreble.value = audioData?.treble || 0;
+      materialRef.current.uniforms.uAudioEnergy.value = audioData?.energy || 0;
     }
     updateUniforms();
   });
 
-  // 타겟이 변경되면 트랜지션 리셋
+  // Reset transition when targets change
   useEffect(() => {
     transitionProgressRef.current = 0;
   }, [targetPositions, targetColors]);
 
-  // 정리 작업
+  // GPGPU initialization
+  useEffect(() => {
+    const count = positions.length / 3;
+    const texSize = Math.ceil(Math.sqrt(count));
+
+    try {
+      const gpuCompute = new GPUComputationRenderer(texSize, texSize, gl);
+
+      const dtPosition = gpuCompute.createTexture();
+      const dtVelocity = gpuCompute.createTexture();
+      const dtOriginal = gpuCompute.createTexture();
+
+      // Fill original texture with base particle positions
+      const origData = dtOriginal.image.data as unknown as Float32Array;
+      for (let i = 0; i < count; i++) {
+        const idx = i * 4;
+        origData[idx] = positions[i * 3];
+        origData[idx + 1] = positions[i * 3 + 1];
+        origData[idx + 2] = positions[i * 3 + 2];
+        origData[idx + 3] = 0;
+      }
+
+      const posVar = gpuCompute.addVariable('texturePosition', positionComputeShader, dtPosition);
+      const velVar = gpuCompute.addVariable('textureVelocity', velocityComputeShader, dtVelocity);
+
+      gpuCompute.setVariableDependencies(posVar, [posVar, velVar]);
+      gpuCompute.setVariableDependencies(velVar, [posVar, velVar]);
+
+      Object.assign(velVar.material.uniforms, {
+        textureOriginal: { value: dtOriginal },
+        uTime: { value: 0 },
+        uDeltaTime: { value: 0.016 },
+        uLeftHand: { value: new THREE.Vector3() },
+        uRightHand: { value: new THREE.Vector3() },
+        uHandRadius: { value: 100 },
+        uRepulsionForce: { value: 0.5 },
+        uAttractionForce: { value: 0.5 },
+        uAudioBass: { value: 0 },
+        uAudioEnergy: { value: 0 },
+      });
+
+      Object.assign(posVar.material.uniforms, {
+        uDeltaTime: { value: 0.016 },
+      });
+
+      posVar.wrapS = THREE.ClampToEdgeWrapping;
+      posVar.wrapT = THREE.ClampToEdgeWrapping;
+      velVar.wrapS = THREE.ClampToEdgeWrapping;
+      velVar.wrapT = THREE.ClampToEdgeWrapping;
+
+      const error = gpuCompute.init();
+      if (error !== null) {
+        console.warn('GPGPU init failed:', error);
+        gpuEnabledRef.current = false;
+        return;
+      }
+
+      gpuComputeRef.current = gpuCompute;
+      posVarRef.current = posVar;
+      velVarRef.current = velVar;
+      gpuEnabledRef.current = true;
+    } catch (e) {
+      console.warn('GPGPU unavailable, vertex shader fallback:', e);
+      gpuEnabledRef.current = false;
+    }
+
+    return () => {
+      if (gpuComputeRef.current) {
+        gpuComputeRef.current.dispose();
+        gpuComputeRef.current = null;
+        gpuEnabledRef.current = false;
+      }
+    };
+  }, [gl, positions]);
+
+  // Cleanup
   useEffect(() => {
     return () => {
       geometry.dispose();

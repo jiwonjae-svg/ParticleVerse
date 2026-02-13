@@ -60,14 +60,14 @@ export default function Scene() {
 
   const previousSourceRef = useRef<{ type: string; data: unknown } | null>(null);
 
-  // 파티클 데이터 생성
+  // Generate particle data
   useEffect(() => {
     const generateParticles = async () => {
-      // sourceData가 null이거나 default 타입인 경우 구형 파티클 표시
+      // Show spherical particles when sourceData is null or default type
       if (sourceData === null || sourceType === 'default') {
         const currentSource = { type: 'default', data: null };
         
-        // 동일한 소스인 경우 스킵
+        // Skip if same source
         if (
           previousSourceRef.current?.type === 'default' &&
           previousSourceRef.current?.data === null
@@ -78,7 +78,7 @@ export default function Scene() {
         setLoading(true);
         const result = generateDefaultParticles(particleSettings.count);
         
-        // 트랜지션 설정
+        // Set up transition
         if (currentData) {
           setTargetData(result);
         } else {
@@ -91,7 +91,7 @@ export default function Scene() {
         return;
       }
 
-      // 동일한 소스인 경우 스킵
+      // Skip if same source
       const currentSource = { type: sourceType, data: sourceData };
       if (
         previousSourceRef.current?.type === sourceType &&
@@ -139,21 +139,21 @@ export default function Scene() {
             result = generateDefaultParticles(particleSettings.count);
         }
 
-        // 트랜지션 설정: 현재 데이터가 있으면 타겟으로 이동
-        if (currentData) {
-          // 파티클 수가 다른 경우 조정
+// Set up transition: if current data exists, transition to target
+          if (currentData) {
+            // Adjust when particle count differs
           const currentCount = currentData.positions.length / 3;
           const newCount = result.positions.length / 3;
           
           if (currentCount !== newCount) {
-            // 파티클 수가 다르면 새로운 위치 생성 (사라지거나 나타나는 파티클)
+              // Create new positions when particle count differs (appearing/disappearing particles)
             const adjustedPositions = new Float32Array(result.positions.length);
             const adjustedColors = new Float32Array(result.colors.length);
             
             for (let i = 0; i < newCount; i++) {
               const srcIdx = Math.min(i, currentCount - 1);
               if (i < currentCount) {
-                // 기존 파티클은 원래 위치에서 시작
+                // Existing particles start from their original position
                 adjustedPositions[i * 3] = currentData.positions[srcIdx * 3];
                 adjustedPositions[i * 3 + 1] = currentData.positions[srcIdx * 3 + 1];
                 adjustedPositions[i * 3 + 2] = currentData.positions[srcIdx * 3 + 2];
@@ -161,7 +161,7 @@ export default function Scene() {
                 adjustedColors[i * 3 + 1] = currentData.colors[srcIdx * 3 + 1];
                 adjustedColors[i * 3 + 2] = currentData.colors[srcIdx * 3 + 2];
               } else {
-                // 새 파티클은 중심에서 시작
+                // New particles start from center
                 adjustedPositions[i * 3] = (Math.random() - 0.5) * 10;
                 adjustedPositions[i * 3 + 1] = (Math.random() - 0.5) * 10;
                 adjustedPositions[i * 3 + 2] = (Math.random() - 0.5) * 10;
@@ -176,15 +176,15 @@ export default function Scene() {
           
           setTargetData(result);
         } else {
-          // 첫 로드
+          // First load
           setCurrentData(result);
           setTargetData(null);
         }
         
         previousSourceRef.current = currentSource;
       } catch (error) {
-        console.error('파티클 생성 실패:', error);
-        setError('파티클 생성에 실패했습니다.');
+        console.error('Particle generation failed:', error);
+        setError('Failed to generate particles.');
         const fallback = generateDefaultParticles(particleSettings.count);
         setCurrentData(fallback);
         setTargetData(null);
@@ -196,19 +196,19 @@ export default function Scene() {
     generateParticles();
   }, [sourceType, sourceData, particleSettings.count, setLoading, setError]);
 
-  // 트랜지션 완료 시 현재 데이터 업데이트
+  // Update current data when transition completes
   useEffect(() => {
     if (targetData) {
       const timer = setTimeout(() => {
         setCurrentData(targetData);
         setTargetData(null);
-      }, 2000 / particleSettings.transitionSpeed); // 트랜지션 완료 후
+      }, 2000 / particleSettings.transitionSpeed); // After transition completes
       
       return () => clearTimeout(timer);
     }
   }, [targetData, particleSettings.transitionSpeed]);
 
-  // 배경색
+  // Background color
   const backgroundColor = useMemo(() => {
     const opacity = visualSettings.backgroundOpacity;
     return new THREE.Color(0, 0, 0).multiplyScalar(opacity);
@@ -228,7 +228,7 @@ export default function Scene() {
         depth: true,
         alpha: false,
       }}
-      dpr={[1, 2]}
+      dpr={isMobile ? [1, 1] : [1, 2]}
       performance={{ min: 0.5 }}
     >
       {visualSettings.showStats && <Stats />}
@@ -260,10 +260,10 @@ export default function Scene() {
       {visualSettings.bloomIntensity > 0 && (
         <EffectComposer>
           <Bloom
-            intensity={visualSettings.bloomIntensity}
-            luminanceThreshold={0.2}
+            intensity={isMobile ? Math.min(visualSettings.bloomIntensity, 0.5) : visualSettings.bloomIntensity}
+            luminanceThreshold={isMobile ? 0.4 : 0.2}
             luminanceSmoothing={0.9}
-            radius={0.8}
+            radius={isMobile ? 0.4 : 0.8}
           />
           <Vignette offset={0.3} darkness={0.5} />
         </EffectComposer>

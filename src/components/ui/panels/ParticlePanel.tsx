@@ -23,7 +23,7 @@ export default function ParticlePanel() {
       exit={{ opacity: 0, y: 10 }}
       className="space-y-6"
     >
-      {/* 파티클 수 */}
+      {/* Particle count */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-dark-300">{t('particleCount')}</label>
@@ -53,7 +53,7 @@ export default function ParticlePanel() {
         )}
       </div>
 
-      {/* 파티클 크기 */}
+      {/* Particle size */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-dark-300">{t('particleSize')}</label>
@@ -74,7 +74,7 @@ export default function ParticlePanel() {
         </div>
       </div>
 
-      {/* 불투명도 */}
+      {/* Opacity */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-dark-300">{t('opacity')}</label>
@@ -91,7 +91,7 @@ export default function ParticlePanel() {
         />
       </div>
 
-      {/* 속도 */}
+      {/* Speed */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-dark-300">{t('animationSpeed')}</label>
@@ -112,7 +112,7 @@ export default function ParticlePanel() {
         </div>
       </div>
 
-      {/* 터뷸런스 */}
+      {/* Turbulence */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-dark-300">{t('turbulence')}</label>
@@ -133,7 +133,7 @@ export default function ParticlePanel() {
         </div>
       </div>
 
-      {/* 전환 속도 */}
+      {/* Transition speed */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-dark-300">{t('transitionSpeed')}</label>
@@ -155,7 +155,7 @@ export default function ParticlePanel() {
         <p className="text-xs text-dark-500">{t('transitionSpeedDesc')}</p>
       </div>
 
-      {/* 연결선 */}
+      {/* Connection lines */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-dark-300">{t('particleConnection')}</label>
@@ -188,7 +188,7 @@ export default function ParticlePanel() {
         )}
       </div>
 
-      {/* 프리셋 */}
+      {/* Presets */}
       <div className="space-y-3">
         <label className="text-sm font-medium text-dark-300">{t('presets')}</label>
         <div className="grid grid-cols-2 gap-2">

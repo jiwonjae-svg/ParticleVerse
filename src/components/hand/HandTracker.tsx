@@ -14,7 +14,7 @@ interface HandResult {
   multiHandedness: { label: string }[];
 }
 
-// MediaPipe 타입
+// MediaPipe types
 interface MediaPipeHands {
   setOptions: (options: {
     maxNumHands: number;
@@ -32,6 +32,12 @@ interface MediaPipeCamera {
   stop: () => void;
 }
 
+// Detect mobile device
+const isMobileDevice = () => {
+  if (typeof window === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+};
+
 export default function HandTracker() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -39,10 +45,15 @@ export default function HandTracker() {
   const cameraRef = useRef<MediaPipeCamera | null>(null);
   const animationRef = useRef<number>();
   const mountedRef = useRef<boolean>(true);
+  // Track actual video dimensions for correct coordinate mapping
+  const videoDimensionsRef = useRef<{ width: number; height: number }>({ width: 640, height: 480 });
+  // Track viewport dimensions for responsive coordinate mapping
+  const viewportDimensionsRef = useRef<{ width: number; height: number }>({ width: window?.innerWidth || 1920, height: window?.innerHeight || 1080 });
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [initProgress, setInitProgress] = useState<string>('');
+  const [isMobile, setIsMobile] = useState(false);
 
   const { 
     handSettings, 
@@ -50,7 +61,34 @@ export default function HandTracker() {
     setCurrentGesture,
   } = useAppStore();
 
-  // 제스처 감지
+  // Detect and update mobile state and viewport dimensions
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(isMobileDevice());
+      viewportDimensionsRef.current = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      };
+    };
+    checkMobile();
+
+    const handleResize = () => {
+      checkMobile();
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => {
+      // Delay to allow browser to update dimensions after orientation change
+      setTimeout(handleResize, 200);
+    });
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, []);
+
+  // Gesture detection
   const detectGesture = useCallback((landmarks: HandLandmark[]): HandGesture => {
     if (!landmarks || landmarks.length < 21) return 'none';
 
@@ -91,17 +129,28 @@ export default function HandTracker() {
     return 'none';
   }, []);
 
-  // 손 위치를 3D 좌표로 변환
+  // Convert hand landmark to 3D coordinates
+  // Accounts for actual video aspect ratio and viewport dimensions
   const landmarkTo3D = useCallback((landmark: HandLandmark): { x: number; y: number; z: number } => {
     const sensitivity = handSettings.sensitivity;
+    const viewport = viewportDimensionsRef.current;
+    
+    // Use viewport aspect ratio for coordinate mapping
+    // This ensures correct mapping on both portrait (mobile) and landscape (desktop) screens
+    const aspectRatio = viewport.width / viewport.height;
+    
+    // Scale factor adapts to screen orientation
+    const scaleX = aspectRatio >= 1 ? 400 : 400 * aspectRatio;
+    const scaleY = aspectRatio >= 1 ? 400 : 400 / aspectRatio;
+    
     return {
-      x: (landmark.x - 0.5) * 400 * sensitivity,
-      y: -(landmark.y - 0.5) * 400 * sensitivity,
+      x: (landmark.x - 0.5) * scaleX * sensitivity,
+      y: -(landmark.y - 0.5) * scaleY * sensitivity,
       z: -landmark.z * 200 * sensitivity,
     };
   }, [handSettings.sensitivity]);
 
-  // 결과 처리
+  // Process hand tracking results
   const onResults = useCallback((results: HandResult) => {
     if (!canvasRef.current || !mountedRef.current) return;
 
@@ -129,7 +178,7 @@ export default function HandTracker() {
           setCurrentGesture(gesture);
         }
 
-        // 디버그 시각화
+        // Debug visualization
         ctx.save();
         ctx.scale(-1, 1);
         ctx.translate(-canvasRef.current.width, 0);
@@ -181,7 +230,7 @@ export default function HandTracker() {
     }
   }, [landmarkTo3D, detectGesture, setHandPosition, setCurrentGesture, handSettings.gestureEnabled]);
 
-  // MediaPipe 초기화 - 더 안전한 방법 사용
+  // MediaPipe initialization - mobile-aware setup
   useEffect(() => {
     if (!handSettings.enabled) {
       return;
@@ -194,10 +243,10 @@ export default function HandTracker() {
       try {
         setInitProgress('Loading MediaPipe...');
         
-        // 스크립트 태그로 MediaPipe 로드 (WASM 에러 회피)
+        // Load MediaPipe via script tags (avoids WASM errors)
         const loadScript = (src: string): Promise<void> => {
           return new Promise((resolve, reject) => {
-            // 이미 로드된 경우 스킵
+            // Skip if already loaded
             if (document.querySelector(`script[src="${src}"]`)) {
               resolve();
               return;
@@ -212,18 +261,18 @@ export default function HandTracker() {
           });
         };
 
-        // MediaPipe 스크립트 순차 로드 (jsdelivr CDN 사용)
+        // Load MediaPipe scripts sequentially (jsdelivr CDN)
         await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js');
         await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js');
 
         if (cleanupCalled || !mountedRef.current) return;
 
-        // 전역 객체에서 MediaPipe 가져오기
+        // Get MediaPipe from global scope
         const win = window as unknown as {
           Hands: new (config: { locateFile: (file: string) => string }) => MediaPipeHands;
           Camera: new (
             video: HTMLVideoElement,
-            config: { onFrame: () => Promise<void>; width: number; height: number }
+            config: { onFrame: () => Promise<void>; width: number; height: number; facingMode?: string }
           ) => MediaPipeCamera;
         };
 
@@ -235,19 +284,21 @@ export default function HandTracker() {
 
         setInitProgress('Initializing hand detection...');
 
-        // Hands 설정 - 더 안정적인 버전 사용
+        // Determine mobile status and set appropriate settings
+        const mobile = isMobileDevice();
+
+        // Configure Hands - use lower complexity on mobile for performance
         const hands = new win.Hands({
           locateFile: (file: string) => {
-            // jsdelivr CDN 사용
             return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`;
           },
         });
 
         hands.setOptions({
           maxNumHands: 2,
-          modelComplexity: 1,
-          minDetectionConfidence: 0.7,
-          minTrackingConfidence: 0.5,
+          modelComplexity: mobile ? 0 : 1, // Lower complexity on mobile
+          minDetectionConfidence: mobile ? 0.6 : 0.7,
+          minTrackingConfidence: mobile ? 0.4 : 0.5,
         });
 
         hands.onResults(onResults);
@@ -255,19 +306,26 @@ export default function HandTracker() {
 
         setInitProgress('Starting camera...');
 
-        // 카메라 설정
+        // Camera resolution adapts to device type and orientation
+        const camWidth = mobile ? 320 : 640;
+        const camHeight = mobile ? 240 : 480;
+
+        // Store actual video dimensions for coordinate mapping
+        videoDimensionsRef.current = { width: camWidth, height: camHeight };
+
+        // Configure camera - use front-facing camera on mobile
         const camera = new win.Camera(videoRef.current, {
           onFrame: async () => {
             if (handsRef.current && videoRef.current && mountedRef.current) {
               try {
                 await handsRef.current.send({ image: videoRef.current });
               } catch (e) {
-                // 프레임 전송 에러 무시 (정리 중일 수 있음)
+                // Ignore frame send errors (may occur during cleanup)
               }
             }
           },
-          width: 640,
-          height: 480,
+          width: camWidth,
+          height: camHeight,
         });
 
         cameraRef.current = camera;
@@ -302,14 +360,14 @@ export default function HandTracker() {
         try {
           cameraRef.current.stop();
         } catch (e) {
-          // 정리 에러 무시
+          // Ignore cleanup errors
         }
       }
       if (handsRef.current) {
         try {
           handsRef.current.close();
         } catch (e) {
-          // 정리 에러 무시
+          // Ignore cleanup errors
         }
       }
       if (animationRef.current) {
@@ -324,7 +382,7 @@ export default function HandTracker() {
 
   return (
     <>
-      {/* 비디오 (숨김) */}
+      {/* Video element (hidden) */}
       <video
         ref={videoRef}
         className="hidden"
@@ -332,25 +390,25 @@ export default function HandTracker() {
         muted
       />
 
-      {/* 디버그 캔버스 */}
+      {/* Debug canvas */}
       {isInitialized && (
         <canvas
           ref={canvasRef}
-          width={320}
-          height={240}
+          width={isMobile ? 160 : 320}
+          height={isMobile ? 120 : 240}
           className="fixed bottom-4 right-4 w-40 h-30 rounded-lg border border-dark-600 opacity-50 hover:opacity-100 transition-opacity z-50"
           style={{ transform: 'scaleX(-1)' }}
         />
       )}
 
-      {/* 에러 메시지 */}
+      {/* Error message */}
       {cameraError && (
         <div className="fixed bottom-4 right-4 bg-red-500/90 text-white px-4 py-2 rounded-lg text-sm z-50 max-w-xs">
           {cameraError}
         </div>
       )}
 
-      {/* 로딩 상태 */}
+      {/* Loading state */}
       {!isInitialized && !cameraError && (
         <div className="fixed bottom-4 right-4 bg-dark-800/90 text-white px-4 py-2 rounded-lg text-sm z-50 flex items-center gap-2">
           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -358,12 +416,12 @@ export default function HandTracker() {
         </div>
       )}
 
-      {/* 숨겨진 캔버스 (초기화 전) */}
+      {/* Hidden canvas (before initialization) */}
       {!isInitialized && (
         <canvas
           ref={canvasRef}
-          width={320}
-          height={240}
+          width={isMobile ? 160 : 320}
+          height={isMobile ? 120 : 240}
           className="hidden"
         />
       )}

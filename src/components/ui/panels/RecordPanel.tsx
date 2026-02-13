@@ -30,21 +30,21 @@ export default function RecordPanel() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // 녹화 시간 포맷
+  // Format recording time
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // 캔버스 찾기
+  // Find canvas
   const findCanvas = useCallback((): HTMLCanvasElement | null => {
-    // Three.js 캔버스 찾기
+    // Find Three.js canvas
     const canvas = document.querySelector('canvas:not([class*="hidden"])') as HTMLCanvasElement;
     return canvas;
   }, []);
 
-  // 녹화 시작
+  // Start recording
   const startRecording = useCallback(async () => {
     try {
       setError(null);
@@ -57,10 +57,10 @@ export default function RecordPanel() {
 
       canvasRef.current = canvas;
 
-      // 캔버스 스트림 가져오기
+      // Get canvas stream
       const stream = canvas.captureStream(recordingSettings.fps);
 
-      // 오디오 스트림 추가 (선택적)
+      // Add audio stream (optional)
       if (recordingSettings.includeAudio) {
         try {
           const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -70,12 +70,12 @@ export default function RecordPanel() {
         }
       }
 
-      // 코덱 지원 확인
+      // Check codec support
       const mimeType = recordingSettings.format === 'webm' 
         ? 'video/webm;codecs=vp9'
         : 'video/mp4';
       
-      // 폴백 코덱
+      // Fallback codec
       const supportedMimeType = MediaRecorder.isTypeSupported(mimeType)
         ? mimeType
         : MediaRecorder.isTypeSupported('video/webm')
@@ -87,7 +87,7 @@ export default function RecordPanel() {
         return;
       }
 
-      // MediaRecorder 생성
+      // Create MediaRecorder
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: supportedMimeType,
         videoBitsPerSecond: recordingSettings.quality * 10000000, // quality * 10 Mbps
@@ -114,12 +114,12 @@ export default function RecordPanel() {
       };
 
       mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start(1000); // 1초마다 데이터 수집
+      mediaRecorder.start(1000); // Collect data every 1 second
       setIsRecording(true);
       setRecordingTime(0);
       setRecordedBlob(null);
 
-      // 타이머 시작
+      // Start timer
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
@@ -130,7 +130,7 @@ export default function RecordPanel() {
     }
   }, [findCanvas, recordingSettings, setIsRecording]);
 
-  // 녹화 중지
+  // Stop recording
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
@@ -141,7 +141,7 @@ export default function RecordPanel() {
     }
   }, []);
 
-  // 다운로드
+  // Download
   const downloadRecording = useCallback(() => {
     if (!recordedBlob) return;
 
@@ -155,7 +155,7 @@ export default function RecordPanel() {
     URL.revokeObjectURL(url);
   }, [recordedBlob, recordingSettings.format]);
 
-  // 컴포넌트 언마운트 시 정리
+  // Cleanup on component unmount
   useEffect(() => {
     return () => {
       if (timerRef.current) {
@@ -174,9 +174,9 @@ export default function RecordPanel() {
       exit={{ opacity: 0, y: 10 }}
       className="space-y-6"
     >
-      {/* 녹화 컨트롤 */}
+      {/* Recording controls */}
       <div className="space-y-4">
-        {/* 상태 표시 */}
+        {/* Status display */}
         {isRecording && (
           <div className="flex items-center justify-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
             <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
@@ -185,7 +185,7 @@ export default function RecordPanel() {
           </div>
         )}
 
-        {/* 녹화 버튼 */}
+        {/* Record button */}
         <div className="flex gap-3">
           {!isRecording ? (
             <button
@@ -217,7 +217,7 @@ export default function RecordPanel() {
           </button>
         </div>
 
-        {/* 다운로드 버튼 */}
+        {/* Download button */}
         {recordedBlob && !isRecording && (
           <motion.button
             initial={{ opacity: 0, scale: 0.95 }}
@@ -230,7 +230,7 @@ export default function RecordPanel() {
           </motion.button>
         )}
 
-        {/* 에러 표시 */}
+        {/* Error display */}
         {error && (
           <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
             <AlertTriangle className="w-5 h-5 flex-shrink-0" />
@@ -239,7 +239,7 @@ export default function RecordPanel() {
         )}
       </div>
 
-      {/* 설정 */}
+      {/* Settings */}
       {showSettings && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
@@ -247,7 +247,7 @@ export default function RecordPanel() {
           exit={{ opacity: 0, height: 0 }}
           className="space-y-4 pt-4 border-t border-dark-600"
         >
-          {/* 포맷 */}
+          {/* Format */}
           <div className="space-y-2">
             <label className="text-sm text-gray-400">{t('format')}</label>
             <div className="flex gap-2">
@@ -268,7 +268,7 @@ export default function RecordPanel() {
             </div>
           </div>
 
-          {/* 품질 */}
+          {/* Quality */}
           <div className="space-y-2">
             <div className="flex justify-between">
               <label className="text-sm text-gray-400">{t('recordQuality')}</label>
@@ -304,7 +304,7 @@ export default function RecordPanel() {
             />
           </div>
 
-          {/* 오디오 포함 */}
+          {/* Include audio */}
           <div className="flex items-center justify-between">
             <label className="text-sm text-gray-400 light:text-slate-600">{t('includeAudio')}</label>
             <button
@@ -324,7 +324,7 @@ export default function RecordPanel() {
         </motion.div>
       )}
 
-      {/* 법적 안내 */}
+      {/* Legal notice */}
       <div className="p-3 bg-yellow-500/10 light:bg-blue-100/80 border border-yellow-500/30 light:border-blue-300/50 rounded-lg">
         <p className="text-xs text-yellow-400/80 light:!text-slate-900 leading-relaxed">
           {t('legalNotice')}

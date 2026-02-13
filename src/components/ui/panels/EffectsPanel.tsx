@@ -57,7 +57,7 @@ export default function EffectsPanel() {
       exit={{ opacity: 0, y: 10 }}
       className="space-y-6"
     >
-      {/* 이펙트 선택 */}
+      {/* Effect selection */}
       <div className="space-y-3">
         <label className="text-sm font-medium text-dark-300">{t('selectEffect')}</label>
         <div className="grid grid-cols-3 gap-2">
@@ -81,7 +81,7 @@ export default function EffectsPanel() {
         </div>
       </div>
 
-      {/* 이펙트 강도 */}
+      {/* Effect intensity */}
       {currentEffect !== 'none' && (
         <div className="space-y-3">
           <div className="flex justify-between items-center">
@@ -104,7 +104,7 @@ export default function EffectsPanel() {
         </div>
       )}
 
-      {/* 회전 설정 */}
+      {/* Rotation settings */}
       {currentEffect === 'rotate' && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
@@ -147,7 +147,7 @@ export default function EffectsPanel() {
         </motion.div>
       )}
 
-      {/* 부유 설정 */}
+      {/* Float settings */}
       {currentEffect === 'float' && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
@@ -206,7 +206,7 @@ export default function EffectsPanel() {
         </motion.div>
       )}
 
-      {/* 이펙트 설명 */}
+      {/* Effect description */}
       <div className="card bg-dark-800/30 p-4">
         <h4 className="text-sm font-medium text-white mb-2">
           {t(effects.find(e => e.id === currentEffect)?.labelKey || 'none')}
@@ -221,7 +221,7 @@ export default function EffectsPanel() {
         )}
       </div>
 
-      {/* 프리셋 */}
+      {/* Presets */}
       <div className="space-y-3">
         <label className="text-sm font-medium text-dark-300">{t('quickPresets')}</label>
         <div className="grid grid-cols-2 gap-2">

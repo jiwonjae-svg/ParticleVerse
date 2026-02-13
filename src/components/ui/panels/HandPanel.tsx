@@ -15,7 +15,7 @@ export default function HandPanel() {
 
   return (
     <div className="space-y-6">
-      {/* 손 추적 활성화 */}
+      {/* Hand tracking toggle */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -36,7 +36,7 @@ export default function HandPanel() {
 
       {handSettings.enabled && (
         <>
-          {/* 현재 상태 */}
+          {/* Current status */}
           <div className="card bg-dark-800/50 p-4 space-y-3">
             <h4 className="text-sm font-medium text-white flex items-center gap-2">
               <Eye className="w-4 h-4" />
@@ -64,7 +64,7 @@ export default function HandPanel() {
             </div>
           </div>
 
-          {/* 민감도 */}
+          {/* Sensitivity */}
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <label className="text-sm font-medium text-dark-300 flex items-center gap-2">
@@ -88,7 +88,7 @@ export default function HandPanel() {
             </div>
           </div>
 
-          {/* 상호작용 반경 */}
+          {/* Interaction radius */}
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <label className="text-sm font-medium text-dark-300 flex items-center gap-2">
@@ -112,7 +112,7 @@ export default function HandPanel() {
             </div>
           </div>
 
-          {/* 끌어당기는 힘 */}
+          {/* Attraction force */}
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <label className="text-sm font-medium text-dark-300 flex items-center gap-2">
@@ -132,7 +132,7 @@ export default function HandPanel() {
             />
           </div>
 
-          {/* 밀어내는 힘 */}
+          {/* Repulsion force */}
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <label className="text-sm font-medium text-dark-300 flex items-center gap-2">
@@ -152,7 +152,7 @@ export default function HandPanel() {
             />
           </div>
 
-          {/* 제스처 인식 */}
+          {/* Gesture recognition */}
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <label className="text-sm font-medium text-dark-300">{t('gestureRecognition')}</label>
@@ -165,34 +165,25 @@ export default function HandPanel() {
             </div>
           </div>
 
-          {/* 제스처 가이드 */}
+          {/* Interaction guide */}
           <div className="card bg-dark-800/30 p-4 space-y-3">
             <h4 className="text-sm font-medium text-white">{t('gestureGuide')}</h4>
             <div className="space-y-2 text-xs text-dark-400">
+              <p className="text-dark-300">
+                {t('handPhysicsDesc')}
+              </p>
               <div className="flex items-center justify-between">
-                <span>{t('openHand')}</span>
-                <span className="text-primary-400">{t('push')}</span>
+                <span>{t('handPresence')}</span>
+                <span className="text-primary-400">{t('scatterParticles')}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>{t('fist')}</span>
-                <span className="text-primary-400">{t('pull')}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>{t('pinch')}</span>
-                <span className="text-primary-400">{t('gather')}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>{t('point')}</span>
-                <span className="text-primary-400">{t('pointing')}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>{t('peace')}</span>
-                <span className="text-primary-400">{t('specialEffect')}</span>
+                <span>{t('forceStrength')}</span>
+                <span className="text-primary-400">{t('distanceBased')}</span>
               </div>
             </div>
           </div>
 
-          {/* 프리셋 */}
+          {/* Presets */}
           <div className="space-y-3">
             <label className="text-sm font-medium text-dark-300">{t('presets')}</label>
             <div className="grid grid-cols-2 gap-2">
@@ -245,7 +236,7 @@ export default function HandPanel() {
         </>
       )}
 
-      {/* 비활성화 시 안내 */}
+      {/* Info when disabled */}
       {!handSettings.enabled && (
         <div className="card bg-dark-800/30 p-6 text-center">
           <Hand className="w-12 h-12 mx-auto mb-4 text-dark-500" />

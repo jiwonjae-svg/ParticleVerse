@@ -1,9 +1,9 @@
 /**
- * 보안 유틸리티 함수들
- * 다양한 웹 공격에 대한 방어 메커니즘
+ * Security utility functions
+ * Defense mechanisms against various web attacks
  */
 
-// XSS 방지를 위한 HTML 이스케이프
+// HTML escape for XSS prevention
 export function escapeHtml(text: string): string {
   const map: Record<string, string> = {
     '&': '&amp;',
@@ -18,69 +18,69 @@ export function escapeHtml(text: string): string {
   return text.replace(/[&<>"'`=/]/g, (s) => map[s]);
 }
 
-// 입력 정제 (XSS, SQL Injection 방지)
+// Input sanitization (XSS, SQL Injection prevention)
 export function sanitizeInput(input: string): string {
   if (typeof input !== 'string') return '';
   
-  // HTML 태그 제거
+  // Remove HTML tags
   let sanitized = input.replace(/<[^>]*>/g, '');
   
-  // 스크립트 관련 키워드 제거
+  // Remove script-related keywords
   sanitized = sanitized.replace(/javascript:/gi, '');
   sanitized = sanitized.replace(/on\w+=/gi, '');
   sanitized = sanitized.replace(/data:/gi, '');
   sanitized = sanitized.replace(/vbscript:/gi, '');
   
-  // SQL Injection 패턴 제거
+  // Remove SQL Injection patterns
   sanitized = sanitized.replace(/['";-]/g, '');
   sanitized = sanitized.replace(/\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER|CREATE|EXEC|EXECUTE)\b/gi, '');
   
-  // Command Injection 패턴 제거
+  // Remove Command Injection patterns
   sanitized = sanitized.replace(/[|&;$`\\]/g, '');
   sanitized = sanitized.replace(/\.\./g, '');
   
-  // 공백 정규화
+  // Normalize whitespace
   sanitized = sanitized.replace(/\s+/g, ' ').trim();
   
   return sanitized;
 }
 
-// URL 검증
+// URL validation
 export function isValidUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
-    // 허용된 프로토콜만
+    // Only allowed protocols
     return ['http:', 'https:'].includes(parsed.protocol);
   } catch {
     return false;
   }
 }
 
-// 파일 확장자 검증
+// File extension validation
 export function isAllowedFileType(filename: string, allowedExtensions: string[]): boolean {
   const ext = filename.toLowerCase().split('.').pop();
   return ext ? allowedExtensions.includes(`.${ext}`) : false;
 }
 
-// MIME 타입 검증
+// MIME type validation
 export function isValidMimeType(file: File, allowedTypes: string[]): boolean {
   return allowedTypes.includes(file.type);
 }
 
-// 파일 크기 검증
+// File size validation
 export function isFileSizeValid(file: File, maxSizeBytes: number): boolean {
   return file.size <= maxSizeBytes;
 }
 
-// 파일 매직 넘버 검증 (실제 파일 타입 확인)
+// File magic number validation (verify actual file type)
 export async function validateFileMagicNumber(file: File): Promise<boolean> {
   const magicNumbers: Record<string, number[]> = {
-    // 이미지
+    // Image
     'image/jpeg': [0xFF, 0xD8, 0xFF],
     'image/png': [0x89, 0x50, 0x4E, 0x47],
     'image/gif': [0x47, 0x49, 0x46],
     'image/webp': [0x52, 0x49, 0x46, 0x46],
-    // 3D 모델
+    // 3D model
     'model/gltf-binary': [0x67, 0x6C, 0x54, 0x46], // glTF
   };
 
@@ -94,13 +94,13 @@ export async function validateFileMagicNumber(file: File): Promise<boolean> {
     }
   }
 
-  // GLB 파일은 별도 처리
+  // Special handling for GLB files
   if (file.name.toLowerCase().endsWith('.glb')) {
     // GLB magic: "glTF"
     return bytes[0] === 0x67 && bytes[1] === 0x6C && bytes[2] === 0x54 && bytes[3] === 0x46;
   }
 
-  // GLTF (JSON) 파일
+  // GLTF (JSON) file
   if (file.name.toLowerCase().endsWith('.gltf')) {
     // JSON 파일은 텍스트로 시작
     return bytes[0] === 0x7B; // '{'
@@ -109,14 +109,14 @@ export async function validateFileMagicNumber(file: File): Promise<boolean> {
   return false;
 }
 
-// CSRF 토큰 생성
+// Generate CSRF token
 export function generateCSRFToken(): string {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
   return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-// Rate Limiting (클라이언트 사이드)
+// Rate Limiting (client-side)
 const requestCounts = new Map<string, { count: number; resetTime: number }>();
 
 export function checkRateLimit(key: string, maxRequests: number, windowMs: number): boolean {
@@ -136,13 +136,13 @@ export function checkRateLimit(key: string, maxRequests: number, windowMs: numbe
   return true;
 }
 
-// 입력 길이 제한
+// Input length limit
 export function truncateInput(input: string, maxLength: number): string {
   if (input.length <= maxLength) return input;
   return input.substring(0, maxLength);
 }
 
-// JSON 안전 파싱
+// Safe JSON parsing
 export function safeJsonParse<T>(json: string, fallback: T): T {
   try {
     return JSON.parse(json);
@@ -151,7 +151,7 @@ export function safeJsonParse<T>(json: string, fallback: T): T {
   }
 }
 
-// 객체 필드 필터링 (Mass Assignment 방지)
+// Object field filtering (Mass Assignment prevention)
 export function filterFields<T extends Record<string, unknown>>(
   obj: T,
   allowedFields: (keyof T)[]
@@ -165,36 +165,36 @@ export function filterFields<T extends Record<string, unknown>>(
   return filtered;
 }
 
-// UUID 검증
+// UUID validation
 export function isValidUUID(uuid: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
 }
 
-// 안전한 리다이렉트 URL 검증 (Open Redirect 방지)
+// Safe redirect URL validation (Open Redirect prevention)
 export function isSafeRedirectUrl(url: string, allowedDomains: string[]): boolean {
   try {
     const parsed = new URL(url, window.location.origin);
     
-    // 같은 오리진이면 허용
+    // Allow same origin
     if (parsed.origin === window.location.origin) {
       return true;
     }
     
-    // 허용된 도메인 체크
+    // Check allowed domains
     return allowedDomains.some(domain => parsed.hostname.endsWith(domain));
   } catch {
     return false;
   }
 }
 
-// Path Traversal 방지
+// Path Traversal prevention
 export function sanitizePath(path: string): string {
-  // .. 제거
+  // Remove ..
   let sanitized = path.replace(/\.\./g, '');
-  // 절대 경로 시작 문자 제거
+  // Remove absolute path starting characters
   sanitized = sanitized.replace(/^[/\\]+/, '');
-  // 특수 문자 제거
+  // Remove special characters
   sanitized = sanitized.replace(/[<>:"|?*]/g, '');
   return sanitized;
 }
@@ -205,7 +205,7 @@ export function isValidContentType(contentType: string, allowed: string[]): bool
   return allowed.includes(type);
 }
 
-// 재시도 제한이 있는 비동기 함수 래퍼
+// Async function wrapper with retry limit
 export async function withRetryLimit<T>(
   fn: () => Promise<T>,
   maxRetries: number,
@@ -227,7 +227,7 @@ export async function withRetryLimit<T>(
   throw lastError;
 }
 
-// 안전한 로컬 스토리지 접근
+// Safe local storage access
 export const safeStorage = {
   get(key: string): string | null {
     try {

@@ -195,7 +195,7 @@ export const en = {
   attractionForce: 'Attraction Force',
   repulsionForce: 'Repulsion Force',
   gestureRecognition: 'Gesture Recognition',
-  gestureGuide: 'Gesture Guide',
+  gestureGuide: 'Interaction Guide',
   openHand: '✋ Open Hand',
   fist: '✊ Fist',
   pinch: '🤏 Pinch',
@@ -206,6 +206,11 @@ export const en = {
   gather: 'Gather',
   pointing: 'Pointing',
   specialEffect: 'Special Effect',
+  handPhysicsDesc: 'Particles react physically like sand or granules — your hand pushes them away, and they gradually return to formation.',
+  handPresence: '🖐️ Hand presence',
+  scatterParticles: 'Scatter particles',
+  forceStrength: '💪 Force strength',
+  distanceBased: 'Distance-based',
   defaultPreset: 'Default',
   magnet: 'Magnet',
   shield: 'Shield',
@@ -266,6 +271,32 @@ export const en = {
   infoHandControlDesc: 'Use webcam to detect hands and control particles.',
   infoMouseControl: 'Mouse/Touch Control:',
   infoMouseControlDesc: 'Drag to rotate, scroll to zoom',
+  
+  // Audio Panel
+  audioTab: 'Audio',
+  audioReactive: 'Audio Reactive',
+  audioReactiveDesc: 'Particles react to music — bass, mids, and treble drive size, glow, and physics.',
+  audioSource: 'Audio Source',
+  microphone: 'Microphone',
+  audioFile: 'Audio File',
+  audioLevels: 'Live Levels',
+  bass: 'Bass',
+  mid: 'Mid',
+  treble: 'Treble',
+  reactivity: 'Reactivity',
+  bassMultiplier: 'Bass Multiplier',
+  trebleMultiplier: 'Treble Multiplier',
+  smoothing: 'Smoothing',
+  responsive: 'Responsive',
+  smooth: 'Smooth',
+  audioDisabledDesc: 'Enable audio reactive mode to make particles dance to music or your microphone.',
+  enableAudio: 'Enable Audio',
+  
+  // Sharing
+  shareSettings: 'Share Settings',
+  copyURL: 'Copy Share URL',
+  exportJSON: 'Export as JSON',
+  importJSON: 'Import JSON',
 };
 
 export type TranslationKey = keyof typeof en;

@@ -31,15 +31,15 @@ export default function SourcePanel() {
   const [textInput, setTextInput] = useState('');
   const [cubemapImages, setCubemapImages] = useState<string[]>([]);
 
-  // 파일 검증
+  // File validation
   const validateFile = useCallback((file: File, allowedTypes: string[]): boolean => {
-    // 파일 크기 검증
+    // File size validation
     if (file.size > MAX_FILE_SIZE) {
       setError(t('fileTooLarge'));
       return false;
     }
 
-    // MIME 타입 검증
+    // MIME type validation
     const isValidType = allowedTypes.some(type => {
       if (type.startsWith('.')) {
         return file.name.toLowerCase().endsWith(type);
@@ -55,7 +55,7 @@ export default function SourcePanel() {
     return true;
   }, [setError]);
 
-  // 이미지 드롭존
+  // Image dropzone
   const onImageDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
     
@@ -73,7 +73,7 @@ export default function SourcePanel() {
     reader.readAsDataURL(file);
   }, [setSourceData, setError, validateFile]);
 
-  // 큐브맵 이미지 드롭
+  // Cubemap image drop
   const onCubemapDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
 
@@ -101,7 +101,7 @@ export default function SourcePanel() {
     });
   }, [cubemapImages, setSourceData, validateFile]);
 
-  // 모델 드롭존
+  // Model dropzone
   const onModelDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
     
@@ -109,8 +109,12 @@ export default function SourcePanel() {
     if (!validateFile(file, ALLOWED_MODEL_TYPES)) return;
 
     const url = URL.createObjectURL(file);
+    // Revoke previous blob URL to prevent memory leaks
+    if (typeof sourceData === 'string' && sourceData.startsWith('blob:')) {
+      URL.revokeObjectURL(sourceData);
+    }
     setSourceData(url);
-  }, [setSourceData, validateFile]);
+  }, [setSourceData, validateFile, sourceData]);
 
   const imageDropzone = useDropzone({
     onDrop: onImageDrop,
@@ -133,7 +137,7 @@ export default function SourcePanel() {
     maxSize: MAX_FILE_SIZE,
   });
 
-  // 텍스트 제출
+  // Text submit
   const handleTextSubmit = useCallback(() => {
     const sanitized = sanitizeInput(textInput);
     if (sanitized.length > 0 && sanitized.length <= 50) {
@@ -143,7 +147,7 @@ export default function SourcePanel() {
     }
   }, [textInput, setSourceData, setError]);
 
-  // 큐브맵 이미지 삭제
+  // Remove cubemap image
   const removeCubemapImage = useCallback((index: number) => {
     const newImages = cubemapImages.filter((_, i) => i !== index);
     setCubemapImages(newImages);
@@ -152,7 +156,7 @@ export default function SourcePanel() {
     }
   }, [cubemapImages, setSourceData]);
 
-  // 소스 타입 변경
+  // Change source type
   const handleTypeChange = useCallback((type: ParticleSourceType) => {
     setSourceType(type);
     setSourceData(null);
@@ -162,7 +166,7 @@ export default function SourcePanel() {
 
   return (
     <div className="space-y-4">
-      {/* 소스 타입 선택 */}
+      {/* Source type selection */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-dark-300">{t('sourceType')}</label>
         <div className="grid grid-cols-2 gap-2 px-1">
@@ -184,7 +188,7 @@ export default function SourcePanel() {
         </div>
       </div>
 
-      {/* 단일 이미지 업로드 */}
+      {/* Single image upload */}
       {sourceType === 'image' && (
         <div className="space-y-3">
           <label className="text-sm font-medium text-dark-300">{t('uploadImage')}</label>
@@ -221,14 +225,14 @@ export default function SourcePanel() {
         </div>
       )}
 
-      {/* 큐브맵 업로드 */}
+      {/* Cubemap upload */}
       {sourceType === 'cubemap' && (
         <div className="space-y-3">
           <label className="text-sm font-medium text-dark-300">
             {t('cubemapImages')} ({cubemapImages.length}/6)
           </label>
           
-          {/* 업로드된 이미지 그리드 */}
+          {/* Uploaded images grid */}
           {cubemapImages.length > 0 && (
             <div className="grid grid-cols-3 gap-2">
               {cubemapImages.map((img, index) => (
@@ -248,7 +252,7 @@ export default function SourcePanel() {
             </div>
           )}
 
-          {/* 드롭존 */}
+          {/* Dropzone */}
           {cubemapImages.length < 6 && (
             <div
               {...cubemapDropzone.getRootProps()}
@@ -269,7 +273,7 @@ export default function SourcePanel() {
         </div>
       )}
 
-      {/* 텍스트 입력 */}
+      {/* Text input */}
       {sourceType === 'text' && (
         <div className="space-y-3">
           <label className="text-sm font-medium text-dark-300">{t('textInput')}</label>
@@ -295,7 +299,7 @@ export default function SourcePanel() {
         </div>
       )}
 
-      {/* 3D 모델 업로드 */}
+      {/* 3D model upload */}
       {sourceType === 'model' && (
         <div className="space-y-3">
           <label className="text-sm font-medium text-dark-300">{t('upload3dModel')}</label>

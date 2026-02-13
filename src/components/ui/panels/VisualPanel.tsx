@@ -51,7 +51,7 @@ export default function VisualPanel() {
       exit={{ opacity: 0, y: 10 }}
       className="space-y-6"
     >
-      {/* 컬러 모드 */}
+      {/* Color mode */}
       <div className="space-y-3">
         <label className="text-sm font-medium text-dark-300">{t('colorMode')}</label>
         <div className="grid grid-cols-3 gap-2">
@@ -74,7 +74,7 @@ export default function VisualPanel() {
         </div>
       </div>
 
-      {/* 색상 선택 (그라데이션/단색 모드) */}
+      {/* Color picker (gradient/monochrome mode) */}
       {(visualSettings.colorMode === 'gradient' || visualSettings.colorMode === 'monochrome') && (
         <div className="space-y-4">
           <div className="space-y-2">
@@ -117,7 +117,7 @@ export default function VisualPanel() {
             </div>
           )}
 
-          {/* 색상 프리셋 */}
+          {/* Color presets */}
           <div className="space-y-2">
             <label className="text-xs text-dark-400">{t('colorPresets')}</label>
             <div className="flex flex-wrap gap-2">
@@ -148,7 +148,7 @@ export default function VisualPanel() {
         </div>
       )}
 
-      {/* 라이팅 모드 */}
+      {/* Lighting mode */}
       <div className="space-y-3">
         <label className="text-sm font-medium text-dark-300">{t('lightingMode')}</label>
         <div className="grid grid-cols-3 gap-2">
@@ -172,7 +172,7 @@ export default function VisualPanel() {
         </div>
       </div>
 
-      {/* 라이팅 설정 */}
+      {/* Lighting settings */}
       {lightingSettings.mode !== 'none' && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
@@ -229,7 +229,7 @@ export default function VisualPanel() {
         </motion.div>
       )}
 
-      {/* 블룸 강도 */}
+      {/* Bloom intensity */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-dark-300">{t('bloomEffect')}</label>
@@ -250,7 +250,7 @@ export default function VisualPanel() {
         </div>
       </div>
 
-      {/* 배경 불투명도 */}
+      {/* Background opacity */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-dark-300">{t('backgroundBrightness')}</label>
@@ -271,7 +271,7 @@ export default function VisualPanel() {
         </div>
       </div>
 
-      {/* 성능 통계 표시 */}
+      {/* Show performance stats */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-dark-300">{t('showPerformance')}</label>
@@ -287,7 +287,7 @@ export default function VisualPanel() {
         </p>
       </div>
 
-      {/* 시각 프리셋 */}
+      {/* Visual presets */}
       <div className="space-y-3">
         <label className="text-sm font-medium text-dark-300">{t('atmospherePresets')}</label>
         <div className="grid grid-cols-2 gap-2">

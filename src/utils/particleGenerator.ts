@@ -1,9 +1,9 @@
 /**
- * 파티클 생성 유틸리티
- * 이미지, 텍스트, 3D 모델에서 파티클 데이터를 생성
+ * Particle generation utility
+ * Generates particle data from images, text, and 3D models
  */
 
-// 기본 파티클 생성 (구형 분포)
+// Generate default particles (spherical distribution)
 export function generateDefaultParticles(count: number): {
   positions: Float32Array;
   colors: Float32Array;
@@ -14,7 +14,7 @@ export function generateDefaultParticles(count: number): {
   for (let i = 0; i < count; i++) {
     const i3 = i * 3;
 
-    // 구형 분포
+    // Spherical distribution
     const radius = Math.random() * 150;
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.acos(2 * Math.random() - 1);
@@ -23,7 +23,7 @@ export function generateDefaultParticles(count: number): {
     positions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
     positions[i3 + 2] = radius * Math.cos(phi);
 
-    // 그라데이션 색상
+    // Gradient color
     const t = radius / 150;
     colors[i3] = 0.05 + t * 0.5; // R
     colors[i3 + 1] = 0.4 + t * 0.4; // G
@@ -33,7 +33,7 @@ export function generateDefaultParticles(count: number): {
   return { positions, colors };
 }
 
-// 이미지에서 파티클 생성
+// Generate particles from image
 export async function generateParticlesFromImage(
   imageUrl: string,
   maxParticles: number
@@ -43,16 +43,16 @@ export async function generateParticlesFromImage(
     img.crossOrigin = 'anonymous';
 
     img.onload = () => {
-      // 캔버스 생성
+      // Create canvas
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
 
       if (!ctx) {
-        reject(new Error('Canvas 컨텍스트를 가져올 수 없습니다.'));
+        reject(new Error('Failed to get canvas context.'));
         return;
       }
 
-      // 이미지 크기 조절 (성능 최적화)
+      // Resize image (performance optimization)
       const maxSize = 256;
       let width = img.width;
       let height = img.height;
@@ -67,11 +67,11 @@ export async function generateParticlesFromImage(
       canvas.height = height;
       ctx.drawImage(img, 0, 0, width, height);
 
-      // 픽셀 데이터 추출
+      // Extract pixel data
       const imageData = ctx.getImageData(0, 0, width, height);
       const pixels = imageData.data;
 
-      // 유효한 픽셀 수집 (투명하지 않은 픽셀)
+      // Collect valid pixels (non-transparent)
       const validPixels: { x: number; y: number; r: number; g: number; b: number }[] = [];
 
       for (let y = 0; y < height; y++) {
@@ -82,7 +82,7 @@ export async function generateParticlesFromImage(
           const b = pixels[i + 2];
           const a = pixels[i + 3];
 
-          // 투명도와 밝기 체크
+          // Check transparency and brightness
           if (a > 50) {
             validPixels.push({
               x: x - width / 2,
@@ -95,25 +95,25 @@ export async function generateParticlesFromImage(
         }
       }
 
-      // 샘플링
+      // Sampling
       const particleCount = Math.min(maxParticles, validPixels.length);
       const step = Math.max(1, Math.floor(validPixels.length / particleCount));
 
       const positions = new Float32Array(particleCount * 3);
       const colors = new Float32Array(particleCount * 3);
 
-      const scale = 2; // 스케일 팩터
+      const scale = 2; // Scale factor
 
       for (let i = 0; i < particleCount; i++) {
         const pixel = validPixels[Math.min(i * step, validPixels.length - 1)];
         const i3 = i * 3;
 
-        // 위치 (약간의 깊이 랜덤)
+        // Position (slight random depth)
         positions[i3] = pixel.x * scale;
         positions[i3 + 1] = pixel.y * scale;
         positions[i3 + 2] = (Math.random() - 0.5) * 30;
 
-        // 색상
+        // Color
         colors[i3] = pixel.r;
         colors[i3 + 1] = pixel.g;
         colors[i3 + 2] = pixel.b;
@@ -123,19 +123,19 @@ export async function generateParticlesFromImage(
     };
 
     img.onerror = () => {
-      reject(new Error('이미지 로딩 실패'));
+      reject(new Error('Failed to load image'));
     };
 
     img.src = imageUrl;
   });
 }
 
-// 텍스트에서 파티클 생성
+// Generate particles from text
 export function generateTextParticles(
   text: string,
   maxParticles: number
 ): { positions: Float32Array; colors: Float32Array } {
-  // 캔버스에 텍스트 렌더링
+  // Render text on canvas
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
 
@@ -143,7 +143,7 @@ export function generateTextParticles(
     return generateDefaultParticles(maxParticles);
   }
 
-  // 캔버스 크기 설정
+  // Set canvas size
   const fontSize = 120;
   ctx.font = `bold ${fontSize}px Arial`;
   const metrics = ctx.measureText(text);
@@ -153,7 +153,7 @@ export function generateTextParticles(
   canvas.width = textWidth + 40;
   canvas.height = textHeight + 40;
 
-  // 텍스트 렌더링
+  // Render text
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = '#fff';
@@ -162,11 +162,11 @@ export function generateTextParticles(
   ctx.textBaseline = 'middle';
   ctx.fillText(text, canvas.width / 2, canvas.height / 2);
 
-  // 픽셀 데이터 추출
+  // Extract pixel data
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const pixels = imageData.data;
 
-  // 흰색 픽셀 수집
+  // Collect white pixels
   const validPixels: { x: number; y: number }[] = [];
 
   for (let y = 0; y < canvas.height; y++) {
@@ -183,7 +183,7 @@ export function generateTextParticles(
     }
   }
 
-  // 샘플링
+  // Sampling
   const particleCount = Math.min(maxParticles, validPixels.length);
   const step = Math.max(1, Math.floor(validPixels.length / particleCount));
 
@@ -200,7 +200,7 @@ export function generateTextParticles(
     positions[i3 + 1] = pixel.y * scale;
     positions[i3 + 2] = (Math.random() - 0.5) * 20;
 
-    // 그라데이션 색상
+    // Gradient color
     const t = (pixel.x + canvas.width / 2) / canvas.width;
     colors[i3] = 0.1 + t * 0.8;
     colors[i3 + 1] = 0.6;
@@ -210,12 +210,12 @@ export function generateTextParticles(
   return { positions, colors };
 }
 
-// 3D 모델에서 파티클 생성 (GLTF/GLB)
+// Generate particles from 3D model (GLTF/GLB)
 export async function generateParticlesFromModel(
   modelUrl: string,
   maxParticles: number
 ): Promise<{ positions: Float32Array; colors: Float32Array }> {
-  // GLTFLoader를 동적으로 import
+  // Dynamically import GLTFLoader
   const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
   const loader = new GLTFLoader();
 
@@ -226,7 +226,7 @@ export async function generateParticlesFromModel(
         const positions: number[] = [];
         const colors: number[] = [];
 
-        // 모든 메시에서 버텍스 추출
+        // Extract vertices from all meshes
         gltf.scene.traverse((child) => {
           if ((child as THREE.Mesh).isMesh) {
             const mesh = child as THREE.Mesh;
@@ -235,7 +235,7 @@ export async function generateParticlesFromModel(
             const colorAttr = geometry.getAttribute('color');
 
             for (let i = 0; i < positionAttr.count; i++) {
-              // 월드 좌표로 변환
+              // Convert to world coordinates
               const vertex = new THREE.Vector3(
                 positionAttr.getX(i),
                 positionAttr.getY(i),
@@ -245,7 +245,7 @@ export async function generateParticlesFromModel(
 
               positions.push(vertex.x * 50, vertex.y * 50, vertex.z * 50);
 
-              // 색상
+              // Color
               if (colorAttr) {
                 colors.push(
                   colorAttr.getX(i),
@@ -259,7 +259,7 @@ export async function generateParticlesFromModel(
           }
         });
 
-        // 샘플링
+        // Sampling
         const particleCount = Math.min(maxParticles, positions.length / 3);
         const step = Math.max(1, Math.floor(positions.length / 3 / particleCount));
 
@@ -289,5 +289,5 @@ export async function generateParticlesFromModel(
   });
 }
 
-// THREE 네임스페이스 임포트
+// Import THREE namespace
 import * as THREE from 'three';
