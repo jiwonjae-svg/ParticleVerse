@@ -74,8 +74,8 @@ void main() {
 
   float dt = min(uDeltaTime, 0.05);
 
-  // Spring force to return particles to formation
-  float springK = 2.0 + uAttractionForce * 4.0;
+  // Spring force to return particles to formation (strong enough for fast recovery)
+  float springK = 6.0 + uAttractionForce * 8.0;
   vec3 springForce = -displacement * springK;
 
   // Hand repulsion — left hand
@@ -94,7 +94,7 @@ void main() {
       pushDir += vec3(n1, n2, n3) * 0.3;
       pushDir = normalize(pushDir);
       pushDir.y += 0.1 * force;
-      handForce += pushDir * force * uRepulsionForce * 200.0;
+      handForce += pushDir * force * uRepulsionForce * 60.0;
     }
   }
 
@@ -112,7 +112,7 @@ void main() {
       pushDir += vec3(n1, n2, n3) * 0.3;
       pushDir = normalize(pushDir);
       pushDir.y += 0.1 * force;
-      handForce += pushDir * force * uRepulsionForce * 200.0;
+      handForce += pushDir * force * uRepulsionForce * 60.0;
     }
   }
 
@@ -124,7 +124,7 @@ void main() {
   }
 
   velocity += (springForce + handForce) * dt;
-  velocity *= 0.95; // damping
+  velocity *= 0.85; // strong damping for fast settling
 
   gl_FragColor = vec4(velocity, 0.0);
 }
@@ -140,10 +140,10 @@ void main() {
   vec3 velocity = texture2D(textureVelocity, uv).xyz;
 
   float dt = min(uDeltaTime, 0.05);
-  displacement += velocity * dt * 60.0;
+  displacement += velocity * dt * 20.0;
 
   // Clamp to prevent runaway particles
-  float maxDist = 500.0;
+  float maxDist = 150.0;
   float len = length(displacement);
   if (len > maxDist) {
     displacement = displacement * (maxDist / len);

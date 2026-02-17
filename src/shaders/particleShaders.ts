@@ -247,7 +247,7 @@ vec3 applyHandInteraction(vec3 pos) {
       // Slight upward bias for realistic scatter
       pushDir.y += 0.1 * force;
       
-      float strength = force * uRepulsionForce * 100.0;
+      float strength = force * uRepulsionForce * 35.0;
       result += pushDir * strength;
     }
   }
@@ -271,7 +271,7 @@ vec3 applyHandInteraction(vec3 pos) {
       
       pushDir.y += 0.1 * force;
       
-      float strength = force * uRepulsionForce * 100.0;
+      float strength = force * uRepulsionForce * 35.0;
       result += pushDir * strength;
     }
   }

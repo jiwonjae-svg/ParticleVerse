@@ -90,6 +90,7 @@ export default function ParticleSystem({
     rightHand,
     currentGesture,
     setParticleCount,
+    setFPS,
     audioData,
   } = useAppStore();
 
@@ -111,6 +112,10 @@ export default function ParticleSystem({
   // WebGL renderer for GPGPU
   const { gl } = useThree();
   
+  // FPS measurement refs
+  const fpsFrameCountRef = useRef(0);
+  const fpsLastTimeRef = useRef(0);
+
   // Smooth particle settings refs
   const smoothSizeRef = useRef(2);
   const smoothOpacityRef = useRef(0.8);
@@ -316,6 +321,15 @@ export default function ParticleSystem({
     if (materialRef.current) {
       const time = state.clock.elapsedTime;
       materialRef.current.uniforms.uTime.value = time;
+
+      // FPS measurement — update once per second
+      fpsFrameCountRef.current++;
+      const fpsElapsed = time - fpsLastTimeRef.current;
+      if (fpsElapsed >= 1.0) {
+        setFPS(Math.round(fpsFrameCountRef.current / fpsElapsed));
+        fpsFrameCountRef.current = 0;
+        fpsLastTimeRef.current = time;
+      }
       
       // Smooth hand position interpolation (lerp)
       const lerpFactor = Math.min(delta * handSettings.gestureTransitionSpeed * 5, 1);

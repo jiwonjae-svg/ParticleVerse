@@ -134,18 +134,18 @@ export default function HandTracker() {
   const landmarkTo3D = useCallback((landmark: HandLandmark): { x: number; y: number; z: number } => {
     const sensitivity = handSettings.sensitivity;
     const viewport = viewportDimensionsRef.current;
-    
-    // Use viewport aspect ratio for coordinate mapping
-    // This ensures correct mapping on both portrait (mobile) and landscape (desktop) screens
     const aspectRatio = viewport.width / viewport.height;
     
-    // Scale factor adapts to screen orientation
-    const scaleX = aspectRatio >= 1 ? 400 : 400 * aspectRatio;
-    const scaleY = aspectRatio >= 1 ? 400 : 400 / aspectRatio;
+    // Compute visible area from camera FOV (60°) at z=0, camera at z=300
+    const halfFovRad = (60 / 2) * Math.PI / 180; // 30 degrees
+    const cameraDistance = 300;
+    const visibleHeight = Math.tan(halfFovRad) * cameraDistance * 2; // ~346
+    const visibleWidth = visibleHeight * aspectRatio;
     
     return {
-      x: (landmark.x - 0.5) * scaleX * sensitivity,
-      y: -(landmark.y - 0.5) * scaleY * sensitivity,
+      // Negate X: webcam is mirrored, so MediaPipe x=0 (video left) = screen right
+      x: -(landmark.x - 0.5) * visibleWidth * sensitivity,
+      y: -(landmark.y - 0.5) * visibleHeight * sensitivity,
       z: -landmark.z * 200 * sensitivity,
     };
   }, [handSettings.sensitivity]);
