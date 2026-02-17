@@ -4,7 +4,7 @@ import { useRef, useMemo, useEffect, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { GPUComputationRenderer } from 'three-stdlib';
-import { useAppStore, ParticleEffect, ColorMode, LightingMode } from '@/store/useAppStore';
+import { useAppStore, ParticleEffect, ColorMode, LightingMode, HandGesture } from '@/store/useAppStore';
 import { particleVertexShader, particleFragmentShader } from '@/shaders/particleShaders';
 import { velocityComputeShader, positionComputeShader } from '@/gpgpu/computeShaders';
 
@@ -37,6 +37,15 @@ const lightingModeToIndex: Record<LightingMode, number> = {
   contract: 3,
   pulse: 4,
   wave: 5,
+};
+
+const gestureToIndex: Record<HandGesture, number> = {
+  none: 0,
+  open: 1,
+  closed: 2,
+  pinch: 3,
+  point: 4,
+  peace: 5,
 };
 
 interface ParticleSystemProps {
@@ -277,7 +286,7 @@ export default function ParticleSystem({
     mat.uniforms.uHandRadius.value = smoothHandRadiusRef.current;
     mat.uniforms.uAttractionForce.value = smoothAttractionForceRef.current;
     mat.uniforms.uRepulsionForce.value = smoothRepulsionForceRef.current;
-    mat.uniforms.uGesture.value = 0; // Gesture index no longer used for physics-based interaction
+    mat.uniforms.uGesture.value = gestureToIndex[currentGesture] || 0;
     
     // Rotation settings
     mat.uniforms.uRotateAxisX.value = rotationSettings.axisX;
@@ -475,6 +484,7 @@ export default function ParticleSystem({
         velUniforms.uHandRadius.value = smoothHandRadiusRef.current;
         velUniforms.uRepulsionForce.value = smoothRepulsionForceRef.current;
         velUniforms.uAttractionForce.value = smoothAttractionForceRef.current;
+        velUniforms.uGesture.value = gestureToIndex[currentGesture] || 0;
         velUniforms.uAudioBass.value = audioData?.bass || 0;
         velUniforms.uAudioEnergy.value = audioData?.energy || 0;
 
@@ -540,6 +550,7 @@ export default function ParticleSystem({
         uHandRadius: { value: 100 },
         uRepulsionForce: { value: 0.5 },
         uAttractionForce: { value: 0.5 },
+        uGesture: { value: 0 },
         uAudioBass: { value: 0 },
         uAudioEnergy: { value: 0 },
       });

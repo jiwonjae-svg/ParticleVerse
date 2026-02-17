@@ -221,62 +221,69 @@ vec3 applyEffect(vec3 pos, vec3 originalPos, float time) {
   return result;
 }
 
-// Physics-based hand interaction (sand/granular particle behavior)
-vec3 applyHandInteraction(vec3 pos) {
-  vec3 result = pos;
-  
-  // Process left hand - push particles like sand
-  if (length(uLeftHand) > 0.001) {
-    vec3 toParticle = pos - uLeftHand;
-    float dist = length(toParticle);
-    
-    if (dist < uHandRadius && dist > 0.01) {
-      float normalizedDist = dist / uHandRadius;
-      // Cubic falloff for natural granular response
-      float force = pow(1.0 - normalizedDist, 3.0);
-      
-      vec3 pushDir = normalize(toParticle);
-      
-      // Add organic noise for scatter variation (like real sand grains)
-      float n1 = snoise(pos * 0.03 + uTime * 0.5);
-      float n2 = snoise(pos * 0.03 + uTime * 0.5 + 100.0);
-      float n3 = snoise(pos * 0.03 + uTime * 0.5 + 200.0);
-      pushDir += vec3(n1, n2, n3) * 0.3;
-      pushDir = normalize(pushDir);
-      
-      // Slight upward bias for realistic scatter
-      pushDir.y += 0.1 * force;
-      
-      float strength = force * uRepulsionForce * 35.0;
-      result += pushDir * strength;
-    }
+// Gesture-aware hand interaction (fallback when GPGPU unavailable)
+// Gesture modes: 0=none, 1=open(repel), 2=closed(attract), 3=pinch(vortex), 4=point(none), 5=peace(explode)
+vec3 applyHandForce(vec3 pos, vec3 handPos, float seedOffset) {
+  vec3 result = vec3(0.0);
+  if (length(handPos) < 0.001) return result;
+
+  vec3 toParticle = pos - handPos;
+  float dist = length(toParticle);
+  if (dist >= uHandRadius || dist < 0.01) return result;
+
+  float normalizedDist = dist / uHandRadius;
+  float falloff = pow(1.0 - normalizedDist, 3.0);
+
+  float n1 = snoise(pos * 0.03 + uTime * 0.5 + seedOffset);
+  float n2 = snoise(pos * 0.03 + uTime * 0.5 + seedOffset + 100.0);
+  float n3 = snoise(pos * 0.03 + uTime * 0.5 + seedOffset + 200.0);
+
+  // Gesture 0 (none) or 4 (point): no interaction
+  if (uGesture == 0 || uGesture == 4) {
+    return result;
   }
-  
-  // Process right hand - same physics-based push
-  if (length(uRightHand) > 0.001) {
-    vec3 toParticle = pos - uRightHand;
-    float dist = length(toParticle);
-    
-    if (dist < uHandRadius && dist > 0.01) {
-      float normalizedDist = dist / uHandRadius;
-      float force = pow(1.0 - normalizedDist, 3.0);
-      
-      vec3 pushDir = normalize(toParticle);
-      
-      float n1 = snoise(pos * 0.03 + uTime * 0.5 + 300.0);
-      float n2 = snoise(pos * 0.03 + uTime * 0.5 + 400.0);
-      float n3 = snoise(pos * 0.03 + uTime * 0.5 + 500.0);
-      pushDir += vec3(n1, n2, n3) * 0.3;
-      pushDir = normalize(pushDir);
-      
-      pushDir.y += 0.1 * force;
-      
-      float strength = force * uRepulsionForce * 35.0;
-      result += pushDir * strength;
-    }
+
+  // Gesture 1 (open hand): repel
+  if (uGesture == 1) {
+    vec3 pushDir = normalize(toParticle);
+    pushDir += vec3(n1, n2, n3) * 0.3;
+    pushDir = normalize(pushDir);
+    pushDir.y += 0.1 * falloff;
+    result = pushDir * falloff * uRepulsionForce * 35.0;
   }
-  
+
+  // Gesture 2 (closed fist): attract
+  else if (uGesture == 2) {
+    vec3 pullDir = -normalize(toParticle);
+    pullDir += vec3(n1, n2, n3) * 0.15;
+    pullDir = normalize(pullDir);
+    result = pullDir * falloff * uAttractionForce * 30.0;
+  }
+
+  // Gesture 3 (pinch): vortex
+  else if (uGesture == 3) {
+    vec3 up = vec3(0.0, 1.0, 0.0);
+    vec3 tangent = normalize(cross(up, toParticle));
+    vec3 inward = -normalize(toParticle) * 0.3;
+    vec3 orbitDir = tangent + inward;
+    orbitDir += vec3(n1, n2, n3) * 0.1;
+    orbitDir = normalize(orbitDir);
+    result = orbitDir * falloff * uRepulsionForce * 28.0;
+  }
+
+  // Gesture 5 (peace): explosion burst
+  else if (uGesture == 5) {
+    vec3 burstDir = normalize(toParticle);
+    burstDir += vec3(n1, n2, n3) * 0.5;
+    burstDir = normalize(burstDir);
+    result = burstDir * falloff * uRepulsionForce * 70.0;
+  }
+
   return result;
+}
+
+vec3 applyHandInteraction(vec3 pos) {
+  return pos + applyHandForce(pos, uLeftHand, 0.0) + applyHandForce(pos, uRightHand, 300.0);
 }
 
 // Lighting glow calculation

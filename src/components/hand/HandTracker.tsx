@@ -54,6 +54,8 @@ export default function HandTracker() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [initProgress, setInitProgress] = useState<string>('');
   const [isMobile, setIsMobile] = useState(false);
+  // Canvas dimensions that match viewport aspect ratio
+  const [canvasDims, setCanvasDims] = useState<{ width: number; height: number }>({ width: 320, height: 180 });
 
   const { 
     handSettings, 
@@ -63,17 +65,23 @@ export default function HandTracker() {
 
   // Detect and update mobile state and viewport dimensions
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(isMobileDevice());
+    const updateDimensions = () => {
+      const mobile = isMobileDevice();
+      setIsMobile(mobile);
       viewportDimensionsRef.current = {
         width: window.innerWidth,
         height: window.innerHeight,
       };
+      // Compute canvas size matching viewport aspect ratio
+      const baseWidth = mobile ? 160 : 320;
+      const aspectRatio = window.innerWidth / window.innerHeight;
+      const computedHeight = Math.round(baseWidth / aspectRatio);
+      setCanvasDims({ width: baseWidth, height: computedHeight });
     };
-    checkMobile();
+    updateDimensions();
 
     const handleResize = () => {
-      checkMobile();
+      updateDimensions();
     };
 
     window.addEventListener('resize', handleResize);
@@ -143,8 +151,8 @@ export default function HandTracker() {
     const visibleWidth = visibleHeight * aspectRatio;
     
     return {
-      // Negate X: webcam is mirrored, so MediaPipe x=0 (video left) = screen right
-      x: -(landmark.x - 0.5) * visibleWidth * sensitivity,
+      // Direct mapping: video left → screen left (non-mirrored)
+      x: (landmark.x - 0.5) * visibleWidth * sensitivity,
       y: -(landmark.y - 0.5) * visibleHeight * sensitivity,
       z: -landmark.z * 200 * sensitivity,
     };
@@ -180,8 +188,6 @@ export default function HandTracker() {
 
         // Debug visualization
         ctx.save();
-        ctx.scale(-1, 1);
-        ctx.translate(-canvasRef.current.width, 0);
 
         ctx.fillStyle = handedness === 'Left' ? '#0ea5e9' : '#d946ef';
         for (const landmark of landmarks) {
@@ -394,10 +400,10 @@ export default function HandTracker() {
       {isInitialized && (
         <canvas
           ref={canvasRef}
-          width={isMobile ? 160 : 320}
-          height={isMobile ? 120 : 240}
-          className="fixed bottom-4 right-4 w-40 h-30 rounded-lg border border-dark-600 opacity-50 hover:opacity-100 transition-opacity z-50"
-          style={{ transform: 'scaleX(-1)' }}
+          width={canvasDims.width}
+          height={canvasDims.height}
+          className="fixed bottom-4 right-4 rounded-lg border border-dark-600 opacity-50 hover:opacity-100 transition-opacity z-50"
+          style={{ width: isMobile ? 160 : 320, height: canvasDims.height * (isMobile ? 160 : 320) / canvasDims.width }}
         />
       )}
 
@@ -420,8 +426,8 @@ export default function HandTracker() {
       {!isInitialized && (
         <canvas
           ref={canvasRef}
-          width={isMobile ? 160 : 320}
-          height={isMobile ? 120 : 240}
+          width={canvasDims.width}
+          height={canvasDims.height}
           className="hidden"
         />
       )}

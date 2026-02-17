@@ -50,7 +50,8 @@ float snoise(vec3 v) {
 `;
 
 // Velocity compute shader — updates particle velocity each frame
-// Forces: spring-back, hand repulsion, audio reactivity
+// Forces: spring-back, gesture-aware hand interaction, audio reactivity
+// Gesture modes: 0=none, 1=open(repel), 2=closed(attract), 3=pinch(vortex), 4=point(none), 5=peace(explode)
 export const velocityComputeShader = `
 uniform float uTime;
 uniform float uDeltaTime;
@@ -59,11 +60,75 @@ uniform vec3 uRightHand;
 uniform float uHandRadius;
 uniform float uRepulsionForce;
 uniform float uAttractionForce;
+uniform int uGesture;
 uniform float uAudioBass;
 uniform float uAudioEnergy;
 uniform sampler2D textureOriginal;
 
 ${snoiseGLSL}
+
+// Compute gesture-aware force for a single hand
+vec3 computeHandForce(vec3 worldPos, vec3 handPos, float seedOffset) {
+  vec3 force = vec3(0.0);
+  if (length(handPos) < 0.001) return force;
+
+  vec3 toParticle = worldPos - handPos;
+  float dist = length(toParticle);
+  if (dist >= uHandRadius || dist < 0.01) return force;
+
+  float normalizedDist = dist / uHandRadius;
+  float falloff = pow(1.0 - normalizedDist, 3.0);
+
+  // Organic noise for natural variation
+  float n1 = snoise(worldPos * 0.03 + uTime * 0.5 + seedOffset);
+  float n2 = snoise(worldPos * 0.03 + uTime * 0.5 + seedOffset + 100.0);
+  float n3 = snoise(worldPos * 0.03 + uTime * 0.5 + seedOffset + 200.0);
+
+  // Gesture 0 (none) or 4 (point): no interaction
+  if (uGesture == 0 || uGesture == 4) {
+    return force;
+  }
+
+  // Gesture 1 (open hand): repel — push particles away like sand
+  if (uGesture == 1) {
+    vec3 pushDir = normalize(toParticle);
+    pushDir += vec3(n1, n2, n3) * 0.3;
+    pushDir = normalize(pushDir);
+    pushDir.y += 0.1 * falloff;
+    force = pushDir * falloff * uRepulsionForce * 60.0;
+  }
+
+  // Gesture 2 (closed fist): attract — pull particles toward hand
+  else if (uGesture == 2) {
+    vec3 pullDir = -normalize(toParticle);
+    pullDir += vec3(n1, n2, n3) * 0.15;
+    pullDir = normalize(pullDir);
+    force = pullDir * falloff * uAttractionForce * 50.0;
+  }
+
+  // Gesture 3 (pinch): vortex — particles orbit around hand
+  else if (uGesture == 3) {
+    // Tangential force (cross product with up vector for horizontal swirl)
+    vec3 up = vec3(0.0, 1.0, 0.0);
+    vec3 tangent = normalize(cross(up, toParticle));
+    // Add slight inward pull to keep particles in orbit
+    vec3 inward = -normalize(toParticle) * 0.3;
+    vec3 orbitDir = tangent + inward;
+    orbitDir += vec3(n1, n2, n3) * 0.1;
+    orbitDir = normalize(orbitDir);
+    force = orbitDir * falloff * uRepulsionForce * 45.0;
+  }
+
+  // Gesture 5 (peace): explosion burst — strong radial scatter
+  else if (uGesture == 5) {
+    vec3 burstDir = normalize(toParticle);
+    burstDir += vec3(n1, n2, n3) * 0.5;
+    burstDir = normalize(burstDir);
+    force = burstDir * falloff * uRepulsionForce * 120.0;
+  }
+
+  return force;
+}
 
 void main() {
   vec2 uv = gl_FragCoord.xy / resolution.xy;
@@ -78,43 +143,10 @@ void main() {
   float springK = 6.0 + uAttractionForce * 8.0;
   vec3 springForce = -displacement * springK;
 
-  // Hand repulsion — left hand
+  // Gesture-aware hand forces
   vec3 handForce = vec3(0.0);
-  if (length(uLeftHand) > 0.001) {
-    vec3 toParticle = worldPos - uLeftHand;
-    float dist = length(toParticle);
-    if (dist < uHandRadius && dist > 0.01) {
-      float normalizedDist = dist / uHandRadius;
-      float force = pow(1.0 - normalizedDist, 3.0);
-      vec3 pushDir = normalize(toParticle);
-      // Organic noise scatter
-      float n1 = snoise(worldPos * 0.03 + uTime * 0.5);
-      float n2 = snoise(worldPos * 0.03 + uTime * 0.5 + 100.0);
-      float n3 = snoise(worldPos * 0.03 + uTime * 0.5 + 200.0);
-      pushDir += vec3(n1, n2, n3) * 0.3;
-      pushDir = normalize(pushDir);
-      pushDir.y += 0.1 * force;
-      handForce += pushDir * force * uRepulsionForce * 60.0;
-    }
-  }
-
-  // Hand repulsion — right hand
-  if (length(uRightHand) > 0.001) {
-    vec3 toParticle = worldPos - uRightHand;
-    float dist = length(toParticle);
-    if (dist < uHandRadius && dist > 0.01) {
-      float normalizedDist = dist / uHandRadius;
-      float force = pow(1.0 - normalizedDist, 3.0);
-      vec3 pushDir = normalize(toParticle);
-      float n1 = snoise(worldPos * 0.03 + uTime * 0.5 + 300.0);
-      float n2 = snoise(worldPos * 0.03 + uTime * 0.5 + 400.0);
-      float n3 = snoise(worldPos * 0.03 + uTime * 0.5 + 500.0);
-      pushDir += vec3(n1, n2, n3) * 0.3;
-      pushDir = normalize(pushDir);
-      pushDir.y += 0.1 * force;
-      handForce += pushDir * force * uRepulsionForce * 60.0;
-    }
-  }
+  handForce += computeHandForce(worldPos, uLeftHand, 0.0);
+  handForce += computeHandForce(worldPos, uRightHand, 300.0);
 
   // Audio bass pulse — radial impulse
   if (uAudioBass > 0.01) {

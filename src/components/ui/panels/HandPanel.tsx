@@ -168,17 +168,29 @@ export default function HandPanel() {
           {/* Interaction guide */}
           <div className="card bg-dark-800/30 p-4 space-y-3">
             <h4 className="text-sm font-medium text-white">{t('gestureGuide')}</h4>
+            <p className="text-xs text-dark-300">
+              {t('handPhysicsDesc')}
+            </p>
             <div className="space-y-2 text-xs text-dark-400">
-              <p className="text-dark-300">
-                {t('handPhysicsDesc')}
-              </p>
               <div className="flex items-center justify-between">
-                <span>{t('handPresence')}</span>
-                <span className="text-primary-400">{t('scatterParticles')}</span>
+                <span>{t('gestureOpen')}</span>
+                <span className="text-primary-400">{t('gestureOpenDesc')}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>{t('forceStrength')}</span>
-                <span className="text-primary-400">{t('distanceBased')}</span>
+                <span>{t('gestureClosed')}</span>
+                <span className="text-primary-400">{t('gestureClosedDesc')}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>{t('gesturePinch')}</span>
+                <span className="text-primary-400">{t('gesturePinchDesc')}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>{t('gesturePoint')}</span>
+                <span className="text-primary-400">{t('gesturePointDesc')}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>{t('gesturePeace')}</span>
+                <span className="text-primary-400">{t('gesturePeaceDesc')}</span>
               </div>
             </div>
           </div>
